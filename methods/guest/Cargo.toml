@@ -10,3 +10,4 @@ risc0-build = "0.11.0-rc.4"
 
 [dependencies]
 risc0-zkvm-guest = "0.11.0-rc.4"
+winter-air = {path = "../../../winterfell/air"}
