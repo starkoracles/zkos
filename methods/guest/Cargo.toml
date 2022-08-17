@@ -10,4 +10,5 @@ risc0-build = "0.11.0-rc.4"
 
 [dependencies]
 risc0-zkvm-guest = "0.11.0-rc.4"
-winter-air = {path = "../../../winterfell/air"}
+winter-air = { package = "winter-air", version = "0.4", default-features = false, git = "https://github.com/cpunkzzz/winterfell.git", rev = "638822a1eaee12720e8b32f12f0bc834e1355fd9"  }
+
