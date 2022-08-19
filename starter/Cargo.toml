@@ -9,3 +9,4 @@ risc0-zkvm = "0.11.0-rc.4"
 serde = "1.0"
 miden = {git = "https://github.com/cpunkzzz/miden.git", rev = "9e6ea8d8fab4a4fb8bb5baa3f63f13d9b7445c1a"}
 miden-core = {git = "https://github.com/cpunkzzz/miden.git", rev = "9e6ea8d8fab4a4fb8bb5baa3f63f13d9b7445c1a"}
+rkyv = {path = "../../rkyv/rkyv"}
