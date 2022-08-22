@@ -1,26 +1,20 @@
 #![no_main]
 #![no_std]
-use winter_air::proof::{Commitments, Context, OodFrame, Queries};
+use winter_air::proof::{Commitments, Context, OodFrame, Queries, StarkProof};
+use winter_utils::collections::Vec;
 // use miden_verifier::verify;
 
 use risc0_zkvm_guest::env;
 
 risc0_zkvm_guest::entry!(main);
-use rkyv::{Archive, Deserialize, Serialize};
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq)]
-// This will generate a PartialEq impl between our unarchived and archived types
-#[archive(compare(PartialEq))]
-// We can pass attributes through to generated types with archive_attr
-#[archive_attr(derive(Debug))]
-struct ProgArgs {
-    pub a: u64,
-    pub b: u64,
-}
 pub fn main() {
     let arg_bytes: &[u8] = env::read_raw();
-    let archived = unsafe { rkyv::archived_root::<ProgArgs>(&arg_bytes[..]) };
-    assert_eq!(context.trace_length(), 4096);
+    let constraint_queries = unsafe { rkyv::archived_root::<Queries>(&arg_bytes[..]) };
+    // let parsed_constraints = constraint_queries.pasre().expect("parse to succeed");
+    let trace_queries = unsafe { rkyv::archived_root::<Vec<Queries>>(&arg_bytes[..]) };
+
+    // assert_eq!(archived.context.trace_length(), 4096);
     // let commitments: Commitments = env::read();
     // let ood_frame: OodFrame = env::read();
     // Load the first number from the host

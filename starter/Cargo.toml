@@ -7,6 +7,9 @@ edition = "2021"
 methods = { path = "../methods" }
 risc0-zkvm = "0.11.0-rc.4"
 serde = "1.0"
-miden = {git = "https://github.com/cpunkzzz/miden.git", rev = "9e6ea8d8fab4a4fb8bb5baa3f63f13d9b7445c1a"}
-miden-core = {git = "https://github.com/cpunkzzz/miden.git", rev = "9e6ea8d8fab4a4fb8bb5baa3f63f13d9b7445c1a"}
+miden = {path = "../../miden/miden"}
+miden-core = { path = "../../miden/core" }
+winter-air = { package = "winter-air", version = "0.4", default-features = false, path = "../../winterfell/air"  }
 rkyv = {path = "../../rkyv/rkyv"}
+sha3 = "0.10.2"
+hex = "0.4.3"
