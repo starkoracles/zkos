@@ -6,13 +6,13 @@ edition = "2021"
 [workspace]
 
 [build-dependencies]
-risc0-build = { path = "../../../risc0/risc0/zkvm/sdk/rust/build" }
+risc0-build = { git = "https://github.com/cpunkzzz/risc0.git", rev = "af41b453130239656ade36d69d3fe1c3e56ef1e7" }
 
 [dependencies]
-risc0-zkvm-guest = { path = "../../../risc0/risc0/zkvm/sdk/rust/guest" }
-winter-air = { package = "winter-air", version = "0.4", default-features = false, path = "../../../winterfell/air"  }
-winter-utils = {path = "../../../winterfell/utils/core"}
+risc0-zkvm-guest =  { git = "https://github.com/cpunkzzz/risc0.git", rev = "af41b453130239656ade36d69d3fe1c3e56ef1e7" }
+winter-air = { package = "winter-air", version = "0.4", default-features = false, git = "https://github.com/cpunkzzz/winterfell.git", rev = "48905e486aca18c4136f1455b6b5cc99de1db56b"  }
+winter-utils = { package = "winter-utils", version = "0.4", default-features = false, git = "https://github.com/cpunkzzz/winterfell.git", rev = "48905e486aca18c4136f1455b6b5cc99de1db56b"  }
 serde = "1.0"
-rkyv = {path = "../../../rkyv/rkyv"}
+rkyv = { git = "https://github.com/cpunkzzz/rkyv.git", rev = "d7a21338e6444b5b2ab8a3b7d48624eae229258c" }
 sha3 = "0.10.2"
 hex = "0.4.3"
