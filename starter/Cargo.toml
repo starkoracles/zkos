@@ -6,9 +6,14 @@ edition = "2021"
 [dependencies]
 methods = { path = "../methods" }
 risc0-zkvm = { git = "https://github.com/cpunkzzz/risc0.git", rev = "af41b453130239656ade36d69d3fe1c3e56ef1e7" }
-miden = { git = "https://github.com/cpunkzzz/miden.git", rev = "2256034bc745521377f3a8a92aac62c725692d94"}
-miden-core = { git = "https://github.com/cpunkzzz/miden.git", rev = "2256034bc745521377f3a8a92aac62c725692d94"}
-winter-air = { package = "winter-air", version = "0.4", default-features = false, git = "https://github.com/cpunkzzz/winterfell.git", rev = "48905e486aca18c4136f1455b6b5cc99de1db56b"  }
+miden = { path = "../../miden/miden"}
+miden-core = { path = "../../miden/core"}
+miden-air = { path = "../../miden/air"}
+winter-air = { default-features = false, path = "../../winterfell/air"  }
+winter-crypto = { default-features = false, path = "../../winterfell/crypto"  }
+winter-verifier = { default-features = false, path = "../../winterfell/verifier"  }
+winter-math = { default-features = false, path = "../../winterfell/math"  }
 rkyv = { git = "https://github.com/cpunkzzz/rkyv.git", rev = "d7a21338e6444b5b2ab8a3b7d48624eae229258c" }
 sha3 = "0.10.2"
 hex = "0.4.3"
+anyhow = "1.0.62"
