@@ -12,6 +12,7 @@ use winter_air::proof::{Commitments, Context, OodFrame, Queries, StarkProof};
 use winter_air::Air;
 use winter_crypto::hashers::Blake3_192;
 use winter_math::fields::f64::BaseElement;
+use winter_math::fields::QuadExtension;
 use winter_verifier::VerifierChannel;
 
 pub mod fibonacci;
@@ -62,7 +63,7 @@ fn get_verifier_channel(
     outputs: &Vec<u64>,
     inputs: &Vec<u64>,
     program: Program,
-) -> Result<VerifierChannel<BaseElement, Blake3_192<BaseElement>>> {
+) -> Result<VerifierChannel<QuadExtension<BaseElement>, Blake3_192<BaseElement>>> {
     let mut stack_input_felts: Vec<Felt> = Vec::with_capacity(inputs.len());
     for &input in inputs.iter().rev() {
         stack_input_felts.push(
@@ -82,13 +83,8 @@ fn get_verifier_channel(
     }
 
     let pub_inputs = PublicInputs::new(program.hash(), stack_input_felts, stack_output_felts);
-    let air = ProcessorAir::new(
-        proof.get_trace_info(),
-        pub_inputs,
-        get_proof_options().deref().clone(),
-    );
-    Ok(VerifierChannel::new::<ProcessorAir>(&air, proof.clone())
-        .map_err(|msg| anyhow!("failed to create verifier channel: {:?}", msg))?)
+    let air = ProcessorAir::new(proof.get_trace_info(), pub_inputs, proof.options().clone());
+    Ok(VerifierChannel::new::<ProcessorAir>(&air, proof.clone()).map_err(|msg| anyhow!(msg))?)
 }
 
 fn sha3() {
@@ -109,9 +105,10 @@ fn sha3() {
     assert_eq!(&s, &hashed);
 }
 
-fn main() {
-    recursive().unwrap()
+fn main() -> Result<()> {
+    recursive()?;
     // sha3();
+    Ok(())
 }
 
 pub fn get_proof_options() -> ProofOptions {

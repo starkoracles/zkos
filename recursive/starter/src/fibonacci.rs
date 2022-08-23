@@ -62,18 +62,3 @@ fn compute_fibonacci(n: usize) -> Felt {
     }
     t0
 }
-
-// EXAMPLE TESTER
-// ================================================================================================
-
-#[test]
-fn test_fib_example() {
-    let example = get_example(16);
-    super::test_example(example, false);
-}
-
-#[test]
-fn test_fib_example_fail() {
-    let example = get_example(16);
-    super::test_example(example, true);
-}
