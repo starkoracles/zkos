@@ -1,18 +1,24 @@
 #![no_main]
 #![no_std]
-use winter_air::proof::{Commitments, Context, OodFrame, Queries, StarkProof};
-use winter_utils::collections::Vec;
-// use miden_verifier::verify;
+extern crate alloc;
 
+use alloc::vec::Vec;
 use risc0_zkvm_guest::env;
+use utils::inputs::RiscInput;
+use winter_air::proof::{Commitments, Context, OodFrame, Queries, StarkProof};
+use winter_crypto::{hashers::Blake3_192, ByteDigest, RandomCoin};
+use winter_math::fields::{f64::BaseElement, QuadExtension};
 
 risc0_zkvm_guest::entry!(main);
 
 pub fn main() {
     let arg_bytes: &[u8] = env::read_raw();
-    let constraint_queries = unsafe { rkyv::archived_root::<Queries>(&arg_bytes[..]) };
-    // let parsed_constraints = constraint_queries.pasre().expect("parse to succeed");
-    let trace_queries = unsafe { rkyv::archived_root::<Vec<Queries>>(&arg_bytes[..]) };
+    let risc_input = unsafe { rkyv::archived_root::<RiscInput>(&arg_bytes[..]) };
+    let public_coin_seed = Vec::new();
+    let mut public_coin: RandomCoin<BaseElement, Blake3_192<BaseElement>> =
+        RandomCoin::new(&public_coin_seed);
+    let first_digest = ByteDigest::new(risc_input.trace_commitments[0]);
+    public_coin.reseed(first_digest);
 
     // assert_eq!(archived.context.trace_length(), 4096);
     // let commitments: Commitments = env::read();

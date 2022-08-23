@@ -8,9 +8,11 @@ use risc0_zkvm::host::Prover;
 use risc0_zkvm::serde::{from_slice, to_vec};
 use rkyv::{Archive, Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
+use utils::inputs::RiscInput;
 use winter_air::proof::{Commitments, Context, OodFrame, Queries, StarkProof};
 use winter_air::Air;
 use winter_crypto::hashers::Blake3_192;
+use winter_crypto::Digest as WDigest;
 use winter_math::fields::f64::BaseElement;
 use winter_math::fields::QuadExtension;
 use winter_verifier::VerifierChannel;
@@ -46,13 +48,17 @@ fn recursive() -> Result<()> {
     );
 
     let verifier_channel = get_verifier_channel(&proof, &outputs, &pub_inputs, program)?;
+    let trace_commitments: Vec<[u8; 24]> = verifier_channel
+        .read_trace_commitments()
+        .into_iter()
+        .map(|x| x.get_raw())
+        .collect();
+
+    let risc_inputs = RiscInput { trace_commitments };
 
     let mut prover = Prover::new(&std::fs::read(RECURSIVE_PATH).unwrap(), RECURSIVE_ID).unwrap();
-
-    let constraint_queries_bytes = rkyv::to_bytes::<_, 256>(&proof.constraint_queries).unwrap();
-    prover.add_input_u8_slice(&constraint_queries_bytes);
-    let trace_queries_bytes = rkyv::to_bytes::<_, 256>(&proof.trace_queries).unwrap();
-    prover.add_input_u8_slice(&trace_queries_bytes);
+    let trace_commitments_to_send = rkyv::to_bytes::<_, 256>(&risc_inputs).unwrap();
+    prover.add_input_u8_slice(&trace_commitments_to_send);
     let receipt = prover.run().unwrap();
     receipt.verify(RECURSIVE_ID).unwrap();
     Ok(())
