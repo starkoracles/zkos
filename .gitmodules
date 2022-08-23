@@ -1,0 +1,6 @@
+[submodule "miden"]
+	path = miden
+	url = git@github.com:cpunkzzz/miden.git
+[submodule "winterfell"]
+	path = winterfell
+	url = git@github.com:cpunkzzz/winterfell.git
