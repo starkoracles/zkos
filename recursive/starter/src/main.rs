@@ -8,7 +8,7 @@ use risc0_zkvm::host::Prover;
 use risc0_zkvm::serde::{from_slice, to_vec};
 use rkyv::{Archive, Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
-use utils::inputs::RiscInput;
+use utils::inputs::{AirInput, RiscInput};
 use winter_air::proof::{Commitments, Context, OodFrame, Queries, StarkProof};
 use winter_air::Air;
 use winter_crypto::hashers::Blake3_192;
@@ -47,7 +47,8 @@ fn recursive() -> Result<()> {
         "Program result was computed incorrectly"
     );
 
-    let verifier_channel = get_verifier_channel(&proof, &outputs, &pub_inputs, program)?;
+    let (verifier_channel, air_input) =
+        get_verifier_channel(&proof, &outputs, &pub_inputs, program)?;
     let trace_commitments: Vec<[u8; 24]> = verifier_channel
         .read_trace_commitments()
         .into_iter()
@@ -58,7 +59,8 @@ fn recursive() -> Result<()> {
 
     let mut prover = Prover::new(&std::fs::read(RECURSIVE_PATH).unwrap(), RECURSIVE_ID).unwrap();
     let trace_commitments_to_send = rkyv::to_bytes::<_, 256>(&risc_inputs).unwrap();
-    prover.add_input_u8_slice(&trace_commitments_to_send);
+    prover.add_input_u8_slice_aux(&trace_commitments_to_send);
+    prover.add_input(to_vec(&air_input)?.as_slice())?;
     let receipt = prover.run().unwrap();
     receipt.verify(RECURSIVE_ID).unwrap();
     Ok(())
@@ -69,7 +71,10 @@ fn get_verifier_channel(
     outputs: &Vec<u64>,
     inputs: &Vec<u64>,
     program: Program,
-) -> Result<VerifierChannel<QuadExtension<BaseElement>, Blake3_192<BaseElement>>> {
+) -> Result<(
+    VerifierChannel<QuadExtension<BaseElement>, Blake3_192<BaseElement>>,
+    AirInput,
+)> {
     let mut stack_input_felts: Vec<Felt> = Vec::with_capacity(inputs.len());
     for &input in inputs.iter().rev() {
         stack_input_felts.push(
@@ -89,8 +94,16 @@ fn get_verifier_channel(
     }
 
     let pub_inputs = PublicInputs::new(program.hash(), stack_input_felts, stack_output_felts);
+    let air_input = AirInput {
+        trace_info: proof.get_trace_info(),
+        public_inputs: pub_inputs.clone(),
+        proof_options: proof.options().clone(),
+    };
     let air = ProcessorAir::new(proof.get_trace_info(), pub_inputs, proof.options().clone());
-    Ok(VerifierChannel::new::<ProcessorAir>(&air, proof.clone()).map_err(|msg| anyhow!(msg))?)
+    Ok((
+        (VerifierChannel::new::<ProcessorAir>(&air, proof.clone()).map_err(|msg| anyhow!(msg))?),
+        air_input,
+    ))
 }
 
 fn sha3() {

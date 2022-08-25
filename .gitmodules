@@ -4,3 +4,6 @@
 [submodule "winterfell"]
 	path = winterfell
 	url = git@github.com:cpunkzzz/winterfell.git
+[submodule "risc0"]
+	path = risc0
+	url = git@github.com:cpunkzzz/risc0.git
