@@ -3,17 +3,28 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use miden_air::ProcessorAir;
 use risc0_zkvm_guest::env;
-use utils::inputs::RiscInput;
-use winter_air::proof::{Commitments, Context, OodFrame, Queries, StarkProof};
+use utils::inputs::{AirInput, RiscInput};
+use winter_air::{
+    proof::{Commitments, Context, OodFrame, Queries, StarkProof},
+    Air,
+};
 use winter_crypto::{hashers::Blake3_192, ByteDigest, RandomCoin};
 use winter_math::fields::{f64::BaseElement, QuadExtension};
 
 risc0_zkvm_guest::entry!(main);
 
 pub fn main() {
-    let arg_bytes: &[u8] = env::read_raw();
-    let risc_input = unsafe { rkyv::archived_root::<RiscInput>(&arg_bytes[..]) };
+    let aux_input: &[u8] = env::read_aux_input();
+    let air_input: AirInput = env::read();
+    let air = ProcessorAir::new(
+        air_input.trace_info,
+        air_input.public_inputs,
+        air_input.proof_options,
+    );
+
+    let risc_input = unsafe { rkyv::archived_root::<RiscInput>(&aux_input[..]) };
     let public_coin_seed = Vec::new();
     let mut public_coin: RandomCoin<BaseElement, Blake3_192<BaseElement>> =
         RandomCoin::new(&public_coin_seed);

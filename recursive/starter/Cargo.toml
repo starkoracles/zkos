@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 methods = { path = "../methods" }
-risc0-zkvm = { git = "https://github.com/cpunkzzz/risc0.git", rev = "af41b453130239656ade36d69d3fe1c3e56ef1e7" }
+risc0-zkvm = { path = "../../risc0/risc0/zkvm/sdk/rust" }
 miden = { path = "../../miden/miden"}
 miden-core = { path = "../../miden/core"}
 miden-air = { path = "../../miden/air"}
