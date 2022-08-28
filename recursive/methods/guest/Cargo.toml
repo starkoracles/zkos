@@ -9,6 +9,7 @@ edition = "2021"
 risc0-build = { path = "../../../risc0/risc0/zkvm/sdk/rust/build" }
 
 [dependencies]
+anyhow = "1.0.62"
 risc0-zkvm-guest =  { path = "../../../risc0/risc0/zkvm/sdk/rust/guest" }
 winter-air = { package = "winter-air", version = "0.4", default-features = false, path = "../../../winterfell/air"  }
 miden-air = { path = "../../../miden/air"}
