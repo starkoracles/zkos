@@ -10,7 +10,7 @@ use rkyv::Archive;
 use utils::inputs::{AirInput, RiscInput};
 use winter_air::{
     proof::{Commitments, Context, OodFrame, Queries, StarkProof},
-    Air, AuxTraceRandElements,
+    Air, AuxTraceRandElements, ConstraintCompositionCoefficients,
 };
 use winter_crypto::{hashers::Blake3_192, ByteDigest, RandomCoin};
 use winter_math::fields::{f64::BaseElement, QuadExtension};
@@ -36,6 +36,16 @@ pub fn aux_trace_segments(
     Ok(())
 }
 
+pub fn get_constraint_coffs(
+    public_coin: &mut RandomCoin<BaseElement, Blake3_192<BaseElement>>,
+    air: &ProcessorAir,
+) -> Result<ConstraintCompositionCoefficients<BaseElement>> {
+    let constraint_coeffs = air
+        .get_constraint_composition_coefficients(public_coin)
+        .map_err(|_| anyhow!("Random coin error"))?;
+    Ok(constraint_coeffs)
+}
+
 pub fn main() {
     let aux_input: &[u8] = env::read_aux_input();
     let air_input: AirInput = env::read();
@@ -51,4 +61,7 @@ pub fn main() {
         RandomCoin::new(&public_coin_seed);
     // process auxiliary trace segments (if any), to build a set of random elements for each segment
     aux_trace_segments(&risc_input, &mut public_coin, &air).expect("aux trace segments failed");
+    // build random coefficients for the composition polynomial
+    // let constraint_coeffs =
+    //     get_constraint_coffs(&mut public_coin, &air).expect("constraint_coeffs_error");
 }
