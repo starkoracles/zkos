@@ -1,24 +1,21 @@
 #![no_main]
 #![no_std]
-use risc0_zkvm_guest::env;
-use sha3::{Digest, Sha3_256};
-use winter_utils::string::String;
+use risc0_zkvm_guest::{env, sha};
 
 risc0_zkvm_guest::entry!(main);
+use winter_crypto::hashers::{Sha2_256, ShaHasherT};
+
+pub struct GuestSha2;
+
+impl ShaHasherT for GuestSha2 {
+    fn digest(data: &[u8]) -> [u8; 32] {
+        sha::digest_u8_slice(data).get_u8()
+    }
+}
 
 pub fn main() {
     let input: &str = env::read();
-    let mut start = String::from(input);
-    for i in 0..10 {
-        // create a SHA3-256 object
-        let mut hasher = Sha3_256::new();
-
-        // write input message
-        hasher.update(&start);
-
-        // read hash digest
-        let r = hasher.finalize();
-        start = hex::encode(&r)
-    }
-    env::commit(&start);
+    let digest = sha::digest_u8_slice(input.as_bytes());
+    let d2 = GuestSha2::digest(input.as_bytes());
+    env::commit(&hex::encode(&d2));
 }

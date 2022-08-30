@@ -8,7 +8,7 @@ use winter_air::{ProofOptions, TraceInfo};
 #[archive_attr(derive(Debug))]
 #[derive(Clone, Eq)]
 pub struct RiscInput {
-    pub trace_commitments: Vec<[u8; 24]>,
+    pub trace_commitments: Vec<[u8; 32]>,
 }
 
 #[derive(sSerialize, sDeserialize, Debug)]
