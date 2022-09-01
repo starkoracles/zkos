@@ -15,6 +15,7 @@ winter-verifier = { default-features = false, path = "../../winterfell/verifier"
 winter-math = { default-features = false, path = "../../winterfell/math"  }
 utils = {path = "../utils"}
 rkyv = { git = "https://github.com/cpunkzzz/rkyv.git", rev = "d7a21338e6444b5b2ab8a3b7d48624eae229258c" }
+sha2 = "0.10.2"
 sha3 = "0.10.2"
 hex = "0.4.3"
 anyhow = "1.0.62"
