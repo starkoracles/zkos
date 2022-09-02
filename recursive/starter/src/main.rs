@@ -46,15 +46,23 @@ fn recursive() -> Result<()> {
         "Program result was computed incorrectly"
     );
 
-    let (verifier_channel, air_input) =
+    let (mut verifier_channel, air_input) =
         get_verifier_channel(&proof, &outputs, &pub_inputs, program)?;
     let trace_commitments: Vec<[u8; 32]> = verifier_channel
         .read_trace_commitments()
         .into_iter()
         .map(|x| x.get_raw())
         .collect();
+    let constraint_commitment = verifier_channel.read_constraint_commitment().get_raw();
+    let (ood_main_trace_frame, ood_aux_trace_frame) = verifier_channel.read_ood_trace_frame();
+    println!("ood size is: {}", ood_main_trace_frame.current.len());
 
-    let risc_inputs = RiscInput { trace_commitments };
+    let risc_inputs = RiscInput {
+        trace_commitments,
+        constraint_commitment,
+        ood_main_trace_frame,
+        ood_aux_trace_frame,
+    };
 
     let mut prover = Prover::new(&std::fs::read(RECURSIVE_PATH).unwrap(), RECURSIVE_ID).unwrap();
     let trace_commitments_to_send = rkyv::to_bytes::<_, 256>(&risc_inputs).unwrap();
@@ -71,7 +79,7 @@ fn get_verifier_channel(
     inputs: &Vec<u64>,
     program: Program,
 ) -> Result<(
-    VerifierChannel<QuadExtension<BaseElement>, Sha2_256<BaseElement, DefaultSha2>>,
+    VerifierChannel<BaseElement, Sha2_256<BaseElement, DefaultSha2>>,
     AirInput,
 )> {
     let mut stack_input_felts: Vec<Felt> = Vec::with_capacity(inputs.len());

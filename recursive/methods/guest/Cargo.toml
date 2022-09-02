@@ -16,6 +16,7 @@ miden-air = { path = "../../../miden/air"}
 winter-utils = { package = "winter-utils", version = "0.4", default-features = false, path = "../../../winterfell/utils/core"  }
 winter-crypto = { default-features = false, path = "../../../winterfell/crypto" }
 winter-math = { default-features = false, path = "../../../winterfell/math" }
+winter-verifier = { default-features = false, path = "../../../winterfell/verifier"  }
 serde = "1.0"
 rkyv = { git = "https://github.com/cpunkzzz/rkyv.git", rev = "d7a21338e6444b5b2ab8a3b7d48624eae229258c" }
 utils = { path = "../../utils" }

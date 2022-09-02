@@ -6,17 +6,18 @@ use alloc::vec::Vec;
 use anyhow::{anyhow, Result};
 use miden_air::ProcessorAir;
 use risc0_zkvm_guest::{env, sha};
-use rkyv::Archive;
+use rkyv::{option::ArchivedOption, Archive, Deserialize};
 use utils::inputs::{AirInput, RiscInput};
 use winter_air::{
     proof::{Commitments, Context, OodFrame, Queries, StarkProof},
-    Air, AuxTraceRandElements, ConstraintCompositionCoefficients,
+    Air, AuxTraceRandElements, ConstraintCompositionCoefficients, EvaluationFrame,
 };
 use winter_crypto::{
     hashers::{Sha2_256, ShaHasherT},
     ByteDigest, RandomCoin,
 };
-use winter_math::fields::{f64::BaseElement, QuadExtension};
+use winter_math::fields::f64::BaseElement;
+use winter_verifier::evaluate_constraints;
 
 risc0_zkvm_guest::entry!(main);
 
@@ -32,7 +33,7 @@ pub fn aux_trace_segments(
     risc_input: &<RiscInput as Archive>::Archived,
     public_coin: &mut RandomCoin<BaseElement, Sha2_256<BaseElement, GuestSha2>>,
     air: &ProcessorAir,
-) -> Result<()> {
+) -> Result<AuxTraceRandElements<BaseElement>> {
     let first_digest = ByteDigest::new(risc_input.trace_commitments[0]);
     public_coin.reseed(first_digest);
     let mut aux_trace_rand_elements = AuxTraceRandElements::<BaseElement>::new();
@@ -44,7 +45,7 @@ pub fn aux_trace_segments(
         let c = ByteDigest::new(*commitment);
         public_coin.reseed(c);
     }
-    Ok(())
+    Ok(aux_trace_rand_elements)
 }
 
 pub fn get_constraint_coffs(
@@ -71,8 +72,47 @@ pub fn main() {
     let mut public_coin: RandomCoin<BaseElement, Sha2_256<BaseElement, GuestSha2>> =
         RandomCoin::new(&public_coin_seed);
     // process auxiliary trace segments (if any), to build a set of random elements for each segment
-    aux_trace_segments(&risc_input, &mut public_coin, &air).expect("aux trace segments failed");
+    let aux_trace_rand_elements =
+        aux_trace_segments(&risc_input, &mut public_coin, &air).expect("aux trace segments failed");
     // build random coefficients for the composition polynomial
     let constraint_coeffs =
         get_constraint_coffs(&mut public_coin, &air).expect("constraint_coeffs_error");
+    let constraint_commitment = ByteDigest::new(risc_input.constraint_commitment);
+    public_coin.reseed(constraint_commitment);
+    let z = public_coin
+        .draw::<BaseElement>()
+        .map_err(|_| anyhow!("Random coin error"))
+        .expect("constraint_commitment");
+
+    // TODO remove redundant copy
+    let ood_main_trace_frame: EvaluationFrame<BaseElement> = EvaluationFrame::from_rows(
+        risc_input
+            .ood_main_trace_frame
+            .current
+            .deserialize(&mut rkyv::Infallible)
+            .unwrap(),
+        risc_input
+            .ood_main_trace_frame
+            .next
+            .deserialize(&mut rkyv::Infallible)
+            .unwrap(),
+    );
+
+    let ood_aux_trace_frame: Option<EvaluationFrame<BaseElement>> =
+        match &risc_input.ood_aux_trace_frame {
+            ArchivedOption::None => None,
+            ArchivedOption::Some(row) => Some(EvaluationFrame::from_rows(
+                row.current.deserialize(&mut rkyv::Infallible).unwrap(),
+                row.next.deserialize(&mut rkyv::Infallible).unwrap(),
+            )),
+        };
+
+    // evaluate_constraints(
+    //     &air,
+    //     constraint_coeffs,
+    //     &ood_main_trace_frame,
+    //     &ood_aux_trace_frame,
+    //     aux_trace_rand_elements,
+    //     z,
+    // );
 }
