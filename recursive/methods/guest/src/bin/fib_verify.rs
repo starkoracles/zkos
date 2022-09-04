@@ -4,19 +4,16 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use anyhow::{anyhow, Result};
-use miden_air::ProcessorAir;
 use risc0_zkvm_guest::{env, sha};
 use rkyv::{option::ArchivedOption, Archive, Deserialize};
-use utils::inputs::{AirInput, RiscInput};
-use winter_air::{
-    proof::{Commitments, Context, OodFrame, Queries, StarkProof},
-    Air, AuxTraceRandElements, ConstraintCompositionCoefficients, EvaluationFrame,
-};
+use utils::fib::fib_air::FibAir;
+use utils::inputs::{FibAirInput, FibRiscInput};
+use winter_air::{Air, AuxTraceRandElements, ConstraintCompositionCoefficients, EvaluationFrame};
 use winter_crypto::{
     hashers::{Sha2_256, ShaHasherT},
     ByteDigest, RandomCoin,
 };
-use winter_math::fields::f64::BaseElement;
+use winter_math::fields::f128::BaseElement;
 use winter_verifier::evaluate_constraints;
 
 risc0_zkvm_guest::entry!(main);
@@ -30,9 +27,9 @@ impl ShaHasherT for GuestSha2 {
 }
 
 pub fn aux_trace_segments(
-    risc_input: &<RiscInput<BaseElement> as Archive>::Archived,
+    risc_input: &<FibRiscInput<BaseElement> as Archive>::Archived,
     public_coin: &mut RandomCoin<BaseElement, Sha2_256<BaseElement, GuestSha2>>,
-    air: &ProcessorAir,
+    air: &FibAir,
 ) -> Result<AuxTraceRandElements<BaseElement>> {
     let first_digest = ByteDigest::new(risc_input.trace_commitments[0]);
     public_coin.reseed(first_digest);
@@ -50,7 +47,7 @@ pub fn aux_trace_segments(
 
 pub fn get_constraint_coffs(
     public_coin: &mut RandomCoin<BaseElement, Sha2_256<BaseElement, GuestSha2>>,
-    air: &ProcessorAir,
+    air: &FibAir,
 ) -> Result<ConstraintCompositionCoefficients<BaseElement>> {
     let constraint_coeffs = air
         .get_constraint_composition_coefficients(public_coin)
@@ -60,14 +57,17 @@ pub fn get_constraint_coffs(
 
 pub fn main() {
     let aux_input: &[u8] = env::read_aux_input();
-    let air_input: AirInput = env::read();
-    let air = ProcessorAir::new(
+    let air_input: FibAirInput = env::read();
+    let risc_input = unsafe { rkyv::archived_root::<FibRiscInput<BaseElement>>(&aux_input[..]) };
+    let air = FibAir::new(
         air_input.trace_info,
-        air_input.public_inputs,
+        risc_input
+            .result
+            .deserialize(&mut rkyv::Infallible)
+            .unwrap(),
         air_input.proof_options,
     );
 
-    let risc_input = unsafe { rkyv::archived_root::<RiscInput<BaseElement>>(&aux_input[..]) };
     let public_coin_seed = Vec::new();
     let mut public_coin: RandomCoin<BaseElement, Sha2_256<BaseElement, GuestSha2>> =
         RandomCoin::new(&public_coin_seed);

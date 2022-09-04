@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use anyhow::{anyhow, Result};
 use methods::{RECURSIVE_ID, RECURSIVE_PATH, SHA3_ID, SHA3_PATH};
 use miden::{Program, ProofOptions};
@@ -13,12 +11,12 @@ use winter_air::Air;
 use winter_crypto::hashers::DefaultSha2;
 use winter_crypto::hashers::Sha2_256;
 use winter_math::fields::f64::BaseElement;
-use winter_math::fields::QuadExtension;
 use winter_verifier::VerifierChannel;
 
+pub mod fib_winter;
 pub mod fibonacci;
 
-fn recursive() -> Result<()> {
+fn recursive_miden() -> Result<()> {
     println!("============================================================");
 
     let proof_options = get_proof_options();
@@ -132,8 +130,9 @@ fn sha3() {
 }
 
 fn main() -> Result<()> {
-    recursive()?;
+    // recursive_miden()?;
     // sha3();
+    fib_winter::fib_winter()?;
     Ok(())
 }
 

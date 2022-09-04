@@ -7,5 +7,7 @@ edition = "2021"
 rkyv = { git = "https://github.com/cpunkzzz/rkyv.git", rev = "d7a21338e6444b5b2ab8a3b7d48624eae229258c" }
 winter-air = { default-features = false, path = "../../winterfell/air" }
 winter-math = { default-features = false, path = "../../winterfell/math" }
+winter-verifier = { default-features = false, path = "../../winterfell/verifier"  }
+winter-prover = { default-features = false, path = "../../winterfell/prover"  }
 miden-air = { path = "../../miden/air"}
 serde = "1.0.144"
