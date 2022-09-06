@@ -1,14 +1,16 @@
-use miden_air::PublicInputs;
+use miden_air::{FieldElement, PublicInputs};
 use rkyv::{Archive, Deserialize, Serialize};
 use serde::{Deserialize as sDeserialize, Serialize as sSerialize};
-use winter_air::{ProofOptions, TraceInfo};
+use winter_air::{EvaluationFrame, ProofOptions, TraceInfo};
 
 #[derive(Archive, Deserialize, Serialize, Debug, PartialEq)]
 #[archive(compare(PartialEq))]
-#[archive_attr(derive(Debug))]
 #[derive(Clone, Eq)]
-pub struct RiscInput {
+pub struct RiscInput<E: FieldElement> {
     pub trace_commitments: Vec<[u8; 32]>,
+    pub constraint_commitment: [u8; 32],
+    pub ood_main_trace_frame: EvaluationFrame<E>,
+    pub ood_aux_trace_frame: Option<EvaluationFrame<E>>,
 }
 
 #[derive(sSerialize, sDeserialize, Debug)]
@@ -16,4 +18,21 @@ pub struct AirInput {
     pub trace_info: TraceInfo,
     pub public_inputs: PublicInputs,
     pub proof_options: ProofOptions,
+}
+
+#[derive(sSerialize, sDeserialize, Debug)]
+pub struct FibAirInput {
+    pub trace_info: TraceInfo,
+    pub proof_options: ProofOptions,
+}
+
+#[derive(Archive, Deserialize, Serialize, Debug, PartialEq)]
+#[archive(compare(PartialEq))]
+#[derive(Clone, Eq)]
+pub struct FibRiscInput<E: FieldElement> {
+    pub trace_commitments: Vec<[u8; 32]>,
+    pub constraint_commitment: [u8; 32],
+    pub ood_main_trace_frame: EvaluationFrame<E>,
+    pub ood_aux_trace_frame: Option<EvaluationFrame<E>>,
+    pub result: E,
 }
