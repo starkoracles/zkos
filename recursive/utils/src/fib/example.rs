@@ -1,6 +1,6 @@
 use winter_air::proof::StarkProof;
 use winter_air::ProofOptions;
-use winter_math::{fields::f128::BaseElement, FieldElement};
+use winter_math::{fields::f64::BaseElement, FieldElement};
 use winter_prover::{Prover, Trace};
 use winter_verifier::VerifierError;
 

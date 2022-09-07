@@ -6,7 +6,7 @@ use utils::fib::fib_air::FibAir;
 use utils::inputs::{AirInput, FibAirInput, FibRiscInput};
 use winter_air::{Air, FieldExtension, HashFunction, ProofOptions};
 use winter_crypto::hashers::{DefaultSha2, Sha2_256};
-use winter_math::fields::f128::BaseElement;
+use winter_math::fields::f64::BaseElement;
 use winter_verifier::VerifierChannel;
 
 pub fn fib_winter() -> Result<()> {

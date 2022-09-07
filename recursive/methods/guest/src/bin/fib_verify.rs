@@ -13,7 +13,7 @@ use winter_crypto::{
     hashers::{Sha2_256, ShaHasherT},
     ByteDigest, RandomCoin,
 };
-use winter_math::fields::f128::BaseElement;
+use winter_math::fields::f64::BaseElement;
 use winter_verifier::evaluate_constraints;
 
 risc0_zkvm_guest::entry!(main);
