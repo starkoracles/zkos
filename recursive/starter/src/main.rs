@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
-use methods::{RECURSIVE_ID, RECURSIVE_PATH, SHA3_ID, SHA3_PATH};
+use methods::{EXP_ID, EXP_PATH, RECURSIVE_ID, RECURSIVE_PATH, SHA3_ID, SHA3_PATH};
 use miden::{Program, ProofOptions};
-use miden_air::{Felt, ProcessorAir, PublicInputs};
+use miden_air::{Felt, FieldElement, ProcessorAir, PublicInputs};
 use risc0_zkvm::host::Prover;
 use risc0_zkvm::serde::{from_slice, to_vec};
 use sha3::{Digest, Sha3_256};
@@ -129,10 +129,25 @@ fn sha3() {
     assert_eq!(&s, &hashed);
 }
 
+fn exp() {
+    let mut prover = Prover::new(&std::fs::read(EXP_PATH).unwrap(), EXP_ID).unwrap();
+    let base = 16u64;
+    let exp = 10u64;
+    prover.add_input(to_vec(&base).unwrap().as_slice()).unwrap();
+    prover.add_input(to_vec(&exp).unwrap().as_slice()).unwrap();
+    let receipt = prover.run().unwrap();
+    let result: BaseElement = from_slice(&receipt.get_journal_vec().unwrap()).unwrap();
+    println!("{}^{} = {}", &base, &exp, &result);
+    receipt.verify(EXP_ID).unwrap();
+    let b = BaseElement::new(base);
+    assert_eq!(result, b.exp(exp));
+}
+
 fn main() -> Result<()> {
     // recursive_miden()?;
     // sha3();
     fib_winter::fib_winter()?;
+    // exp();
     Ok(())
 }
 
