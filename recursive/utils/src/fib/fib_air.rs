@@ -6,7 +6,7 @@ use winter_air::ProofOptions;
 use winter_air::{
     Air, AirContext, Assertion, EvaluationFrame, TraceInfo, TransitionConstraintDegree,
 };
-use winter_math::{fields::f128::BaseElement, FieldElement};
+use winter_math::{fields::f64::BaseElement, FieldElement};
 
 const TRACE_WIDTH: usize = 2;
 

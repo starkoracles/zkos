@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 use winter_air::ProofOptions;
-use winter_math::{fields::f128::BaseElement, FieldElement};
+use winter_math::{fields::f64::BaseElement, FieldElement};
 use winter_prover::Prover;
 use winter_prover::Trace;
 use winter_prover::TraceTable;
