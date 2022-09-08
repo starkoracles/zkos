@@ -1,13 +1,18 @@
 use anyhow::{anyhow, Context, Result};
 use methods::{FIB_VERIFY_ID, FIB_VERIFY_PATH};
-use risc0_zkvm::{host::Prover, serde::to_vec};
+use risc0_zkvm::{
+    host::Prover,
+    serde::{from_slice, to_vec},
+};
 use utils::fib::example::{Example, FibExample};
 use utils::fib::fib_air::FibAir;
-use utils::inputs::{AirInput, FibAirInput, FibRiscInput};
+use utils::inputs::{FibAirInput, FibRiscInput, Output};
 use winter_air::{Air, FieldExtension, HashFunction, ProofOptions};
 use winter_crypto::hashers::{DefaultSha2, Sha2_256};
 use winter_math::fields::f64::BaseElement;
 use winter_verifier::VerifierChannel;
+
+type E = BaseElement;
 
 pub fn fib_winter() -> Result<()> {
     println!("============================================================");
@@ -23,7 +28,7 @@ pub fn fib_winter() -> Result<()> {
         proof_options: proof.options().clone(),
     };
     let air = FibAir::new(proof.get_trace_info(), e.result, proof.options().clone());
-    let mut verifier_channel: VerifierChannel<BaseElement, Sha2_256<BaseElement, DefaultSha2>> =
+    let mut verifier_channel: VerifierChannel<E, Sha2_256<E, DefaultSha2>> =
         VerifierChannel::new::<FibAir>(&air, proof.clone()).map_err(|msg| anyhow!(msg))?;
     let trace_commitments: Vec<[u8; 32]> = verifier_channel
         .read_trace_commitments()
@@ -32,6 +37,7 @@ pub fn fib_winter() -> Result<()> {
         .collect();
     let constraint_commitment = verifier_channel.read_constraint_commitment().get_raw();
     let (ood_main_trace_frame, ood_aux_trace_frame) = verifier_channel.read_ood_trace_frame();
+    let ood_constraint_evaluations = verifier_channel.read_ood_constraint_evaluations();
     println!("ood size is: {}", ood_main_trace_frame.current.len());
 
     let risc_inputs = FibRiscInput {
@@ -40,6 +46,7 @@ pub fn fib_winter() -> Result<()> {
         ood_main_trace_frame,
         ood_aux_trace_frame,
         result: e.result,
+        ood_constraint_evaluations,
     };
 
     let mut prover = Prover::new(&std::fs::read(FIB_VERIFY_PATH).unwrap(), FIB_VERIFY_ID).unwrap();
@@ -48,8 +55,9 @@ pub fn fib_winter() -> Result<()> {
     prover
         .add_input(to_vec(&fib_air_input).context("failed to_vec")?.as_slice())
         .context("failed to add input to prover")?;
-    println!("After adding inputs");
     let receipt = prover.run().unwrap();
+    let result: Output<E> = from_slice(&receipt.get_journal_vec().unwrap()).unwrap();
+    println!("result is: {:?}", result);
     receipt.verify(FIB_VERIFY_ID).unwrap();
 
     Ok(())
