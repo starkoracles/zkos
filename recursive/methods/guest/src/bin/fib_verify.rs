@@ -2,8 +2,9 @@
 #![no_std]
 extern crate alloc;
 
+use alloc::format;
 use alloc::vec::Vec;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, Result};
 use miden_air::FieldElement;
 use risc0_zkvm_guest::{env, sha};
 use rkyv::{option::ArchivedOption, Archive, Deserialize};
@@ -81,6 +82,7 @@ pub fn main() {
     // build random coefficients for the composition polynomial
     let constraint_coeffs =
         get_constraint_coffs(&mut public_coin, &air).expect("constraint_coeffs_error");
+    env::log(&format!("constraint coeffs: {:?}", &constraint_coeffs));
     let constraint_commitment = ByteDigest::new(risc_input.constraint_commitment);
     public_coin.reseed(constraint_commitment);
     let z = public_coin

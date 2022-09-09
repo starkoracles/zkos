@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use methods::{FIB_VERIFY_ID, FIB_VERIFY_PATH};
+use miden::StarkProof;
 use risc0_zkvm::{
     host::Prover,
     serde::{from_slice, to_vec},
@@ -22,6 +23,7 @@ pub fn fib_winter() -> Result<()> {
     println!("--------------------------------");
     println!("Trace length: {}", proof.context.trace_length());
     println!("Trace queries length: {}", proof.trace_queries.len());
+    verify_with_winter(proof.clone(), e.result.clone());
 
     let fib_air_input = FibAirInput {
         trace_info: proof.get_trace_info(),
@@ -73,4 +75,8 @@ fn get_proof_options() -> ProofOptions {
         8,
         256,
     )
+}
+
+fn verify_with_winter(proof: StarkProof, result: E) -> Result<()> {
+    winter_verifier::verify::<FibAir>(proof, result).map_err(|msg| anyhow!(msg))
 }
