@@ -40,6 +40,7 @@ pub struct FibRiscInput<E: FieldElement> {
     pub constraint_commitment: [u8; 32],
     pub ood_main_trace_frame: EvaluationFrame<E>,
     pub ood_aux_trace_frame: Option<EvaluationFrame<E>>,
-    pub result: E,
     pub ood_constraint_evaluations: Vec<E>,
+    pub result: E,
+    pub context: Vec<u8>,
 }
