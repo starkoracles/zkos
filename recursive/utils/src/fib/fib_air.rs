@@ -10,10 +10,6 @@ use winter_math::{fields::f64::BaseElement, FieldElement};
 
 const TRACE_WIDTH: usize = 2;
 
-pub fn are_equal<E: FieldElement>(a: E, b: E) -> E {
-    a - b
-}
-
 // FIBONACCI AIR
 // ================================================================================================
 
@@ -73,4 +69,8 @@ impl Air for FibAir {
             Assertion::single(1, last_step, self.result),
         ]
     }
+}
+
+pub fn are_equal<E: FieldElement>(a: E, b: E) -> E {
+    a - b
 }

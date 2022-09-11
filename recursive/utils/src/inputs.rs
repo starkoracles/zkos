@@ -21,6 +21,12 @@ pub struct AirInput {
 }
 
 #[derive(sSerialize, sDeserialize, Debug)]
+pub struct Output<E: FieldElement> {
+    pub ood_constraint_evaluation_1: E,
+    pub ood_constraint_evaluation_2: E,
+}
+
+#[derive(sSerialize, sDeserialize, Debug)]
 pub struct FibAirInput {
     pub trace_info: TraceInfo,
     pub proof_options: ProofOptions,
@@ -34,5 +40,7 @@ pub struct FibRiscInput<E: FieldElement> {
     pub constraint_commitment: [u8; 32],
     pub ood_main_trace_frame: EvaluationFrame<E>,
     pub ood_aux_trace_frame: Option<EvaluationFrame<E>>,
+    pub ood_constraint_evaluations: Vec<E>,
     pub result: E,
+    pub context: Vec<u8>,
 }

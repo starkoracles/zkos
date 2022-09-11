@@ -1,7 +1,7 @@
 use winter_air::proof::StarkProof;
 use winter_air::ProofOptions;
 use winter_math::{fields::f64::BaseElement, FieldElement};
-use winter_prover::{Prover, Trace};
+use winter_prover::Prover;
 use winter_verifier::VerifierError;
 
 use super::fib_air::FibAir;
@@ -10,27 +10,17 @@ use super::fib_prover::FibProver;
 pub trait Example {
     fn prove(&self) -> StarkProof;
     fn verify(&self, proof: StarkProof) -> Result<(), VerifierError>;
-    fn verify_with_wrong_inputs(&self, proof: StarkProof) -> Result<(), VerifierError>;
 }
 
 impl Example for FibExample {
     fn prove(&self) -> StarkProof {
-        // create a prover
         let prover = FibProver::new(self.options.clone());
-
-        // generate execution trace
         let trace = prover.build_trace(self.sequence_length);
-
-        // generate the proof
         prover.prove(trace).unwrap()
     }
 
     fn verify(&self, proof: StarkProof) -> Result<(), VerifierError> {
         winter_verifier::verify::<FibAir>(proof, self.result)
-    }
-
-    fn verify_with_wrong_inputs(&self, proof: StarkProof) -> Result<(), VerifierError> {
-        todo!()
     }
 }
 
