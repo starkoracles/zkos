@@ -68,10 +68,6 @@ pub fn fib_winter() -> Result<()> {
     let receipt = prover.run().unwrap();
     receipt.verify(FIB_VERIFY_ID).unwrap();
 
-    // Debug constraint evaluations
-    let result: Output<E> = from_slice(&receipt.get_journal_vec().unwrap()).unwrap();
-    println!("result is: {:?}", result);
-
     Ok(())
 }
 

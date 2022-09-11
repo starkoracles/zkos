@@ -105,7 +105,7 @@ pub fn main() {
     // build random coefficients for the composition polynomial
     let constraint_coeffs =
         get_constraint_coffs(&mut public_coin, &air).expect("constraint_coeffs_error");
-    env::log(&format!("constraint coeffs: {:?}", &constraint_coeffs));
+    // env::log(&format!("constraint coeffs: {:?}", &constraint_coeffs));
 
     // 2 ----- constraint commitment --------------------------------------------------------------
     let constraint_commitment = ByteDigest::new(pub_inputs.constraint_commitment);
@@ -186,11 +186,7 @@ pub fn main() {
     public_coin.reseed(H::hash_elements(&ood_constraint_evaluations));
 
     // finally, make sure the values are the same
-    // if ood_constraint_evaluation_1 != ood_constraint_evaluation_2 {
-    //     panic!("Inconsistent OOD constraint evaluations");
-    // }
-    env::commit(&Output::<E> {
-        ood_constraint_evaluation_1,
-        ood_constraint_evaluation_2,
-    });
+    if ood_constraint_evaluation_1 != ood_constraint_evaluation_2 {
+        panic!("Inconsistent OOD constraint evaluations");
+    }
 }
