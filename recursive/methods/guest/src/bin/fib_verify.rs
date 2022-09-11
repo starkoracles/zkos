@@ -17,6 +17,7 @@ use winter_crypto::{
     ByteDigest, RandomCoin,
 };
 use winter_math::fields::f64::BaseElement;
+use winter_utils::Serializable;
 use winter_verifier::evaluate_constraints;
 
 risc0_zkvm_guest::entry!(main);
@@ -33,14 +34,12 @@ type E = BaseElement;
 type H = Sha2_256<E, GuestSha2>;
 
 pub fn aux_trace_segments(
-    risc_input: &<FibRiscInput<E> as Archive>::Archived,
+    pub_inputs: &<FibRiscInput<E> as Archive>::Archived,
     public_coin: &mut RandomCoin<E, Sha2_256<E, GuestSha2>>,
     air: &FibAir,
 ) -> Result<AuxTraceRandElements<E>> {
-    let first_digest = ByteDigest::new(risc_input.trace_commitments[0]);
-    public_coin.reseed(first_digest);
     let mut aux_trace_rand_elements = AuxTraceRandElements::<E>::new();
-    for (i, commitment) in risc_input.trace_commitments.iter().skip(1).enumerate() {
+    for (i, commitment) in pub_inputs.trace_commitments.iter().skip(1).enumerate() {
         let rand_elements = air
             .get_aux_trace_segment_random_elements(i, public_coin)
             .map_err(|_| anyhow!("Random coin error"))?;
@@ -61,29 +60,55 @@ pub fn get_constraint_coffs(
     Ok(constraint_coeffs)
 }
 
-pub fn main() {
-    let aux_input: &[u8] = env::read_aux_input();
-    let air_input: FibAirInput = env::read();
-    let risc_input = unsafe { rkyv::archived_root::<FibRiscInput<E>>(&aux_input[..]) };
-    let air = FibAir::new(
-        air_input.trace_info,
-        risc_input
-            .result
-            .deserialize(&mut rkyv::Infallible)
-            .unwrap(),
-        air_input.proof_options,
-    );
+pub fn init_public_coin_seed<S: Serializable>(
+    public_coin_seed: &mut Vec<u8>,
+    result: S,
+    context: &[u8],
+) {
+    result.write_into(public_coin_seed);
+    public_coin_seed.extend(context);
+}
 
-    let public_coin_seed = Vec::new();
+pub fn main() {
+    // Deserialize public inputs
+    let aux_input: &[u8] = env::read_aux_input();
+    let pub_inputs = unsafe { rkyv::archived_root::<FibRiscInput<E>>(&aux_input[..]) };
+
+    // Extract result (pub input to Fib proof)
+    let result = pub_inputs
+        .result
+        .deserialize(&mut rkyv::Infallible)
+        .unwrap();
+
+    // Extract context
+    let context = pub_inputs.context.as_slice();
+
+    // Extract Fibonacci AIR
+    let air_input: FibAirInput = env::read();
+    let air = FibAir::new(air_input.trace_info, result, air_input.proof_options);
+
+    // build a seed for the public coin; the initial seed is the hash of public inputs and proof
+    // context, but as the protocol progresses, the coin will be reseeded with the info received
+    // from the prover
+    let mut public_coin_seed = Vec::new();
+    init_public_coin_seed(&mut public_coin_seed, result, context);
+
     let mut public_coin: RandomCoin<E, Sha2_256<E, GuestSha2>> = RandomCoin::new(&public_coin_seed);
+
+    // reseed the coin with the commitment to the main trace segment
+    public_coin.reseed(ByteDigest::new(pub_inputs.trace_commitments[0]));
+
     // process auxiliary trace segments (if any), to build a set of random elements for each segment
     let aux_trace_rand_elements =
-        aux_trace_segments(&risc_input, &mut public_coin, &air).expect("aux trace segments failed");
+        aux_trace_segments(&pub_inputs, &mut public_coin, &air).expect("aux trace segments failed");
+
     // build random coefficients for the composition polynomial
     let constraint_coeffs =
         get_constraint_coffs(&mut public_coin, &air).expect("constraint_coeffs_error");
     env::log(&format!("constraint coeffs: {:?}", &constraint_coeffs));
-    let constraint_commitment = ByteDigest::new(risc_input.constraint_commitment);
+
+    // 2 ----- constraint commitment --------------------------------------------------------------
+    let constraint_commitment = ByteDigest::new(pub_inputs.constraint_commitment);
     public_coin.reseed(constraint_commitment);
     let z = public_coin
         .draw::<E>()
@@ -98,19 +123,19 @@ pub fn main() {
     // provided) sent by the prover and evaluate constraints over them; also, reseed the public
     // coin with the OOD frames received from the prover.
     let ood_main_trace_frame: EvaluationFrame<E> = EvaluationFrame::from_rows(
-        risc_input
+        pub_inputs
             .ood_main_trace_frame
             .current
             .deserialize(&mut rkyv::Infallible)
             .unwrap(),
-        risc_input
+        pub_inputs
             .ood_main_trace_frame
             .next
             .deserialize(&mut rkyv::Infallible)
             .unwrap(),
     );
 
-    let ood_aux_trace_frame: Option<EvaluationFrame<E>> = match &risc_input.ood_aux_trace_frame {
+    let ood_aux_trace_frame: Option<EvaluationFrame<E>> = match &pub_inputs.ood_aux_trace_frame {
         ArchivedOption::None => None,
         ArchivedOption::Some(row) => Some(EvaluationFrame::from_rows(
             row.current.deserialize(&mut rkyv::Infallible).unwrap(),
@@ -148,7 +173,7 @@ pub fn main() {
     // a single value by computing sum(z^i * value_i), where value_i is the evaluation of the ith
     // column polynomial at z^m, where m is the total number of column polynomials; also, reseed
     // the public coin with the OOD constraint evaluations received from the prover.
-    let ood_constraint_evaluations: Vec<E> = risc_input
+    let ood_constraint_evaluations: Vec<E> = pub_inputs
         .ood_constraint_evaluations
         .deserialize(&mut rkyv::Infallible)
         .unwrap();
