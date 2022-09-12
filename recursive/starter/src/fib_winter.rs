@@ -27,7 +27,7 @@ pub fn fib_winter() -> Result<()> {
     println!("--------------------------------");
     println!("Trace length: {}", proof.context.trace_length());
     println!("Trace queries length: {}", proof.trace_queries.len());
-    verify_with_winter(proof.clone(), e.result.clone());
+    verify_with_winter(proof.clone(), e.result.clone())?;
 
     // Expose verification data as public inputs to Risc0 prover
     let air = FibAir::new(proof.get_trace_info(), e.result, proof.options().clone());

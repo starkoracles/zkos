@@ -189,4 +189,14 @@ pub fn main() {
     if ood_constraint_evaluation_1 != ood_constraint_evaluation_2 {
         panic!("Inconsistent OOD constraint evaluations");
     }
+
+    // 4 ----- FRI commitments --------------------------------------------------------------------
+    // draw coefficients for computing DEEP composition polynomial from the public coin; in the
+    // interactive version of the protocol, the verifier sends these coefficients to the prover
+    // and the prover uses them to compute the DEEP composition polynomial. the prover, then
+    // applies FRI protocol to the evaluations of the DEEP composition polynomial.
+    let deep_coefficients = air
+        .get_deep_composition_coefficients::<E, H>(&mut public_coin)
+        .map_err(|msg| anyhow!(msg))
+        .unwrap();
 }
