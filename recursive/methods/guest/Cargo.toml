@@ -22,3 +22,4 @@ rkyv = { git = "https://github.com/cpunkzzz/rkyv.git", rev = "b1cac53b9bbc16b8af
 utils = { path = "../../utils" }
 sha3 = "0.10.2"
 hex = "0.4.3"
+k256 = { version = "0.11.4", default-features = false, features = ["ecdsa"] }

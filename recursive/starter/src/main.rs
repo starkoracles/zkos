@@ -15,12 +15,14 @@ use winter_verifier::VerifierChannel;
 
 pub mod fib_winter;
 pub mod fibonacci;
+pub mod sig;
 
 fn main() -> Result<()> {
-    fib_winter::fib_winter()?;
+    // fib_winter::fib_winter()?;
     // recursive_miden()?;
     // sha3();
     // exp();
+    sig::sign_secret_message()?;
     Ok(())
 }
 

@@ -19,3 +19,4 @@ sha2 = "0.10.2"
 sha3 = "0.10.2"
 hex = "0.4.3"
 anyhow = "1.0.62"
+k256 = { version = "0.11.4", features = ["ecdsa-core"] }
