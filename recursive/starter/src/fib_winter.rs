@@ -11,9 +11,10 @@ use utils::inputs::{FibAirInput, FibRiscInput, Output};
 use winter_air::{Air, FieldExtension, HashFunction, ProofOptions};
 use winter_crypto::hashers::{DefaultSha2, Sha2_256};
 use winter_math::fields::f64::BaseElement;
-use winter_verifier::{Serializable, VerifierChannel};
+use winter_verifier::{FriVerifierChannel, Serializable, VerifierChannel};
 
 type E = BaseElement;
+type H = Sha2_256<E, DefaultSha2>;
 
 pub fn fib_winter() -> Result<()> {
     println!("============================================================");
@@ -31,7 +32,7 @@ pub fn fib_winter() -> Result<()> {
 
     // Expose verification data as public inputs to Risc0 prover
     let air = FibAir::new(proof.get_trace_info(), e.result, proof.options().clone());
-    let mut verifier_channel: VerifierChannel<E, Sha2_256<E, DefaultSha2>> =
+    let mut verifier_channel: VerifierChannel<E, H> =
         VerifierChannel::new::<FibAir>(&air, proof.clone()).map_err(|msg| anyhow!(msg))?;
     let trace_commitments: Vec<[u8; 32]> = verifier_channel
         .read_trace_commitments()
@@ -41,6 +42,15 @@ pub fn fib_winter() -> Result<()> {
     let constraint_commitment = verifier_channel.read_constraint_commitment().get_raw();
     let (ood_main_trace_frame, ood_aux_trace_frame) = verifier_channel.read_ood_trace_frame();
     let ood_constraint_evaluations = verifier_channel.read_ood_constraint_evaluations();
+    // FRI inputs
+    let fri_layer_commitments = verifier_channel
+        .read_fri_layer_commitments()
+        .into_iter()
+        .map(|x| x.get_raw())
+        .collect();
+    let fri_num_partitions = verifier_channel.read_fri_num_partitions() as u64;
+    let pow_nonce = verifier_channel.read_pow_nonce();
+
     let mut proof_context = Vec::new();
     proof.context.write_into(&mut proof_context);
     let pub_inputs = FibRiscInput {
@@ -51,6 +61,10 @@ pub fn fib_winter() -> Result<()> {
         ood_constraint_evaluations,
         result: e.result,
         context: proof_context,
+        fri_layer_commitments,
+        fri_num_partitions,
+        pow_nonce,
+        verifier_channel,
     };
     let trace_commitments_to_send = rkyv::to_bytes::<_, 256>(&pub_inputs).unwrap();
     prover.add_input_u8_slice_aux(&trace_commitments_to_send);

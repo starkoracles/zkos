@@ -2,6 +2,8 @@ use miden_air::{FieldElement, PublicInputs};
 use rkyv::{Archive, Deserialize, Serialize};
 use serde::{Deserialize as sDeserialize, Serialize as sSerialize};
 use winter_air::{EvaluationFrame, ProofOptions, TraceInfo};
+use winter_prover::crypto::ElementHasher;
+use winter_verifier::VerifierChannel;
 
 #[derive(Archive, Deserialize, Serialize, Debug, PartialEq)]
 #[archive(compare(PartialEq))]
@@ -32,10 +34,8 @@ pub struct FibAirInput {
     pub proof_options: ProofOptions,
 }
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq)]
-#[archive(compare(PartialEq))]
-#[derive(Clone, Eq)]
-pub struct FibRiscInput<E: FieldElement> {
+#[derive(Archive, Deserialize, Serialize)]
+pub struct FibRiscInput<E: FieldElement, H: ElementHasher<BaseField = E::BaseField>> {
     pub trace_commitments: Vec<[u8; 32]>,
     pub constraint_commitment: [u8; 32],
     pub ood_main_trace_frame: EvaluationFrame<E>,
@@ -43,4 +43,8 @@ pub struct FibRiscInput<E: FieldElement> {
     pub ood_constraint_evaluations: Vec<E>,
     pub result: E,
     pub context: Vec<u8>,
+    pub fri_layer_commitments: Vec<[u8; 32]>,
+    pub fri_num_partitions: u64,
+    pub pow_nonce: u64,
+    pub verifier_channel: VerifierChannel<E, H>,
 }
