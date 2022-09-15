@@ -1,13 +1,10 @@
 use anyhow::{anyhow, Context, Result};
 use methods::{FIB_VERIFY_ID, FIB_VERIFY_PATH};
 use miden::StarkProof;
-use risc0_zkvm::{
-    host::Prover,
-    serde::{from_slice, to_vec},
-};
+use risc0_zkvm::{host::Prover, serde::to_vec};
 use utils::fib::example::{Example, FibExample};
 use utils::fib::fib_air::FibAir;
-use utils::inputs::{FibAirInput, FibRiscInput, Output};
+use utils::inputs::{FibAirInput, FibRiscInput};
 use winter_air::{Air, FieldExtension, HashFunction, ProofOptions};
 use winter_crypto::hashers::{DefaultSha2, Sha2_256};
 use winter_math::fields::f64::BaseElement;
@@ -32,38 +29,14 @@ pub fn fib_winter() -> Result<()> {
 
     // Expose verification data as public inputs to Risc0 prover
     let air = FibAir::new(proof.get_trace_info(), e.result, proof.options().clone());
-    let mut verifier_channel: VerifierChannel<E, H> =
+    let verifier_channel: VerifierChannel<E, H> =
         VerifierChannel::new::<FibAir>(&air, proof.clone()).map_err(|msg| anyhow!(msg))?;
-    let trace_commitments: Vec<[u8; 32]> = verifier_channel
-        .read_trace_commitments()
-        .into_iter()
-        .map(|x| x.get_raw())
-        .collect();
-    let constraint_commitment = verifier_channel.read_constraint_commitment().get_raw();
-    let (ood_main_trace_frame, ood_aux_trace_frame) = verifier_channel.read_ood_trace_frame();
-    let ood_constraint_evaluations = verifier_channel.read_ood_constraint_evaluations();
-    // FRI inputs
-    let fri_layer_commitments = verifier_channel
-        .read_fri_layer_commitments()
-        .into_iter()
-        .map(|x| x.get_raw())
-        .collect();
-    let fri_num_partitions = verifier_channel.read_fri_num_partitions() as u64;
-    let pow_nonce = verifier_channel.read_pow_nonce();
 
     let mut proof_context = Vec::new();
     proof.context.write_into(&mut proof_context);
     let pub_inputs = FibRiscInput {
-        trace_commitments,
-        constraint_commitment,
-        ood_main_trace_frame,
-        ood_aux_trace_frame,
-        ood_constraint_evaluations,
         result: e.result,
         context: proof_context,
-        fri_layer_commitments,
-        fri_num_partitions,
-        pow_nonce,
         verifier_channel,
     };
     let trace_commitments_to_send = rkyv::to_bytes::<_, 256>(&pub_inputs).unwrap();
@@ -87,7 +60,7 @@ pub fn fib_winter() -> Result<()> {
 
 fn get_proof_options() -> ProofOptions {
     ProofOptions::new(
-        27,
+        1,
         8,
         16,
         HashFunction::Sha2_256,

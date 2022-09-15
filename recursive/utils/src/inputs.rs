@@ -36,15 +36,7 @@ pub struct FibAirInput {
 
 #[derive(Archive, Deserialize, Serialize)]
 pub struct FibRiscInput<E: FieldElement, H: ElementHasher<BaseField = E::BaseField>> {
-    pub trace_commitments: Vec<[u8; 32]>,
-    pub constraint_commitment: [u8; 32],
-    pub ood_main_trace_frame: EvaluationFrame<E>,
-    pub ood_aux_trace_frame: Option<EvaluationFrame<E>>,
-    pub ood_constraint_evaluations: Vec<E>,
     pub result: E,
     pub context: Vec<u8>,
-    pub fri_layer_commitments: Vec<[u8; 32]>,
-    pub fri_num_partitions: u64,
-    pub pow_nonce: u64,
     pub verifier_channel: VerifierChannel<E, H>,
 }
