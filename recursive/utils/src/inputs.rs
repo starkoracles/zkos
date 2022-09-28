@@ -1,4 +1,6 @@
-use miden_air::{FieldElement, PublicInputs};
+use std::collections::BTreeMap;
+
+use miden_air::{Felt, FieldElement, PublicInputs};
 use rkyv::{Archive, Deserialize, Serialize};
 use serde::{Deserialize as sDeserialize, Serialize as sSerialize};
 use winter_air::{EvaluationFrame, ProofOptions, TraceInfo};
@@ -39,4 +41,5 @@ pub struct FibRiscInput<E: FieldElement, H: ElementHasher<BaseField = E::BaseFie
     pub result: E,
     pub context: Vec<u8>,
     pub verifier_channel: VerifierChannel<E, H>,
+    pub inv_nondet: Vec<(E, E)>,
 }
