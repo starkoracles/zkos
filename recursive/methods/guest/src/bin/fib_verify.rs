@@ -4,7 +4,7 @@ extern crate alloc;
 
 use alloc::format;
 use alloc::vec::Vec;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use miden_air::FieldElement;
 use risc0_zkvm_guest::{env, sha};
 use rkyv::Deserialize;
@@ -16,7 +16,7 @@ use winter_crypto::{
     hashers::{Sha2_256, ShaHasherT},
     RandomCoin,
 };
-use winter_math::fields::f64::BaseElement;
+use winter_math::fields::f64::{BaseElement, INV_NONDET};
 use winter_utils::Serializable;
 use winter_verifier::{evaluate_constraints, DeepComposer, FriVerifier, VerifierChannel};
 
@@ -89,6 +89,12 @@ pub fn run_main_logic() -> Result<()> {
         .deserialize(&mut rkyv::Infallible)
         .unwrap();
 
+    for (a, inv_a) in pub_inputs.inv_nondet.iter() {
+        let a_copy: BaseElement = a.deserialize(&mut rkyv::Infallible).unwrap();
+        let inv_a_copy: BaseElement = inv_a.deserialize(&mut rkyv::Infallible).unwrap();
+        INV_NONDET.lock().insert(a_copy, inv_a_copy);
+    }
+
     // Extract context
     let context = pub_inputs.context.as_slice();
 
@@ -114,11 +120,11 @@ pub fn run_main_logic() -> Result<()> {
     // build random coefficients for the composition polynomial
     let constraint_coeffs =
         get_constraint_coffs(&mut public_coin, &air).expect("constraint_coeffs_error");
-    env::log(&format!("constraint coeffs: {:?}", &constraint_coeffs));
+    // env::log(&format!("constraint coeffs: {:?}", &constraint_coeffs));
 
     // 2 ----- constraint commitment --------------------------------------------------------------
     // let constraint_commitment = ByteDigest::new(pub_inputs.constraint_commitment);
-    env::log(&format!("constraint commitment"));
+    // env::log(&format!("constraint commitment"));
     public_coin.reseed(verifier_channel.read_constraint_commitment());
     let z = public_coin
         .draw::<E>()
@@ -133,7 +139,7 @@ pub fn run_main_logic() -> Result<()> {
     // provided) sent by the prover and evaluate constraints over them; also, reseed the public
     // coin with the OOD frames received from the prover.
 
-    env::log(&format!("ood_frame"));
+    // env::log(&format!("ood_frame"));
     let (ood_main_trace_frame, ood_aux_trace_frame) = verifier_channel.read_ood_trace_frame();
     let ood_constraint_evaluation_1 = evaluate_constraints(
         &air,
@@ -144,7 +150,7 @@ pub fn run_main_logic() -> Result<()> {
         z,
     );
 
-    env::log(&format!("reseed ood_frame"));
+    // env::log(&format!("reseed ood_frame"));
     if let Some(ref aux_trace_frame) = ood_aux_trace_frame {
         // when the trace contains auxiliary segments, append auxiliary trace elements at the
         // end of main trace elements for both current and next rows in the frame. this is
@@ -166,7 +172,7 @@ pub fn run_main_logic() -> Result<()> {
     // // a single value by computing sum(z^i * value_i), where value_i is the evaluation of the ith
     // // column polynomial at z^m, where m is the total number of column polynomials; also, reseed
     // // the public coin with the OOD constraint evaluations received from the prover.
-    env::log(&format!("ood_constraint_evaluation_2"));
+    // env::log(&format!("ood_constraint_evaluation_2"));
     let ood_constraint_evaluations = verifier_channel.read_ood_constraint_evaluations();
     let ood_constraint_evaluation_2 = ood_constraint_evaluations
         .iter()

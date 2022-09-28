@@ -7,7 +7,7 @@ use utils::fib::fib_air::FibAir;
 use utils::inputs::{FibAirInput, FibRiscInput};
 use winter_air::{Air, FieldExtension, HashFunction, ProofOptions};
 use winter_crypto::hashers::{DefaultSha2, Sha2_256};
-use winter_math::fields::f64::BaseElement;
+use winter_math::fields::f64::{BaseElement, INV_NONDET};
 use winter_verifier::{FriVerifierChannel, Serializable, VerifierChannel};
 
 type E = BaseElement;
@@ -38,6 +38,7 @@ pub fn fib_winter() -> Result<()> {
         result: e.result,
         context: proof_context,
         verifier_channel,
+        inv_nondet: INV_NONDET.lock().clone().into_iter().collect(),
     };
     let trace_commitments_to_send = rkyv::to_bytes::<_, 256>(&pub_inputs).unwrap();
     prover.add_input_u8_slice_aux(&trace_commitments_to_send);
