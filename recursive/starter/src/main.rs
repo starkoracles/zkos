@@ -58,7 +58,10 @@ fn recursive_miden() -> Result<()> {
     proof.context.write_into(&mut proof_context);
 
     let (verifier_channel, air_input) =
-        get_verifier_channel(&proof, &outputs, &pub_inputs, program)?;
+        get_verifier_channel(&proof, &outputs, &pub_inputs, program.clone())?;
+
+    // run verify in order to generate nondet inv inputs
+    miden::verify(program.hash().clone(), &pub_inputs[..], &outputs[..], proof).unwrap();
 
     let risc_inputs = MidenRiscInput {
         context: proof_context,
