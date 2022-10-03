@@ -19,9 +19,9 @@ pub mod fibonacci;
 
 fn main() -> Result<()> {
     // fib_winter::fib_winter()?;
-    recursive_miden()?;
+    // recursive_miden()?;
     // sha3();
-    // exp();
+    exp();
     Ok(())
 }
 
@@ -137,20 +137,20 @@ fn get_verifier_channel(
 //    assert_eq!(&s, &hashed);
 //}
 //
-//#[allow(dead_code)]
-//fn exp() {
-//    let mut prover = Prover::new(&std::fs::read(EXP_PATH).unwrap(), EXP_ID).unwrap();
-//    let base = 16u64;
-//    let exp = 10u64;
-//    prover.add_input(to_vec(&base).unwrap().as_slice()).unwrap();
-//    prover.add_input(to_vec(&exp).unwrap().as_slice()).unwrap();
-//    let receipt = prover.run().unwrap();
-//    let result: BaseElement = from_slice(&receipt.get_journal_vec().unwrap()).unwrap();
-//    println!("{}^{} = {}", &base, &exp, &result);
-//    receipt.verify(EXP_ID).unwrap();
-//    let b = BaseElement::new(base);
-//    assert_eq!(result, b.exp(exp));
-//}
+#[allow(dead_code)]
+fn exp() {
+    let mut prover = Prover::new(&std::fs::read(EXP_PATH).unwrap(), EXP_ID).unwrap();
+    let a = 16u64;
+    let b = 10u64;
+    prover.add_input(to_vec(&a).unwrap().as_slice()).unwrap();
+    prover.add_input(to_vec(&b).unwrap().as_slice()).unwrap();
+    let receipt = prover.run().unwrap();
+    let result: u64 = from_slice(&receipt.get_journal_vec().unwrap()).unwrap();
+    println!("{}*{} = {}", &a, &b, &result);
+    receipt.verify(EXP_ID).unwrap();
+    let res_felt = BaseElement::new(result);
+    assert_eq!(res_felt, BaseElement::new(a) * BaseElement::new(b));
+}
 
 pub fn get_proof_options() -> ProofOptions {
     ProofOptions::with_sha2()
