@@ -140,8 +140,8 @@ fn get_verifier_channel(
 #[allow(dead_code)]
 fn exp() {
     let mut prover = Prover::new(&std::fs::read(EXP_PATH).unwrap(), EXP_ID).unwrap();
-    let a = 16u64;
-    let b = 10u64;
+    let a = 0xFFFFFFFF00000000u64;
+    let b = 2u64;
     prover.add_input(to_vec(&a).unwrap().as_slice()).unwrap();
     prover.add_input(to_vec(&b).unwrap().as_slice()).unwrap();
     let receipt = prover.run().unwrap();
