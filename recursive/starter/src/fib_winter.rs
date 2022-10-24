@@ -7,11 +7,13 @@ use utils::fib::fib_air::FibAir;
 use utils::inputs::{FibAirInput, FibRiscInput};
 use winter_air::{Air, FieldExtension, HashFunction, ProofOptions};
 use winter_crypto::hashers::{DefaultSha2, Sha2_256};
-use winter_math::fields::f64::{BaseElement, INV_NONDET};
-use winter_verifier::{FriVerifierChannel, Serializable, VerifierChannel};
+use winter_math::fields::f64::{BaseElement, INV_NONDET_QUAD};
+use winter_math::fields::QuadExtension;
+use winter_verifier::{Serializable, VerifierChannel};
 
-type E = BaseElement;
-type H = Sha2_256<E, DefaultSha2>;
+type B = BaseElement;
+type E = QuadExtension<B>;
+type H = Sha2_256<B, DefaultSha2>;
 
 pub fn fib_winter() -> Result<()> {
     println!("============================================================");
@@ -38,10 +40,10 @@ pub fn fib_winter() -> Result<()> {
         result: e.result,
         context: proof_context,
         verifier_channel,
-        inv_nondet: INV_NONDET.lock().clone().into_iter().collect(),
+        inv_nondet: INV_NONDET_QUAD.lock().clone().into_iter().collect(),
     };
-    let trace_commitments_to_send = rkyv::to_bytes::<_, 256>(&pub_inputs).unwrap();
-    prover.add_input_u8_slice_aux(&trace_commitments_to_send);
+    let pub_inputs_aux = rkyv::to_bytes::<_, 256>(&pub_inputs).unwrap();
+    prover.add_input_u8_slice_aux(&pub_inputs_aux);
 
     // Expose FibAirInput as public input to Risc0 prover
     let fib_air_input = FibAirInput {
@@ -65,12 +67,12 @@ fn get_proof_options() -> ProofOptions {
         8,
         16,
         HashFunction::Sha2_256,
-        FieldExtension::None,
+        FieldExtension::Quadratic,
         8,
         256,
     )
 }
 
-fn verify_with_winter(proof: StarkProof, result: E) -> Result<()> {
+fn verify_with_winter(proof: StarkProof, result: B) -> Result<()> {
     winter_verifier::verify::<FibAir>(proof, result).map_err(|msg| anyhow!(msg))
 }

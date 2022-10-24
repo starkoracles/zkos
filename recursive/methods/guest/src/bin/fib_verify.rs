@@ -16,7 +16,8 @@ use winter_crypto::{
     hashers::{Sha2_256, ShaHasherT},
     RandomCoin,
 };
-use winter_math::fields::f64::{BaseElement, INV_NONDET};
+use winter_math::fields::f64::{BaseElement, INV_NONDET_QUAD};
+use winter_math::fields::QuadExtension;
 use winter_utils::Serializable;
 use winter_verifier::{evaluate_constraints, DeepComposer, FriVerifier, VerifierChannel};
 
@@ -30,13 +31,14 @@ impl ShaHasherT for GuestSha2 {
     }
 }
 
-type E = BaseElement;
-type H = Sha2_256<E, GuestSha2>;
+type B = BaseElement;
+type E = QuadExtension<BaseElement>;
+type H = Sha2_256<B, GuestSha2>;
 type C = VerifierChannel<E, H>;
 
 pub fn aux_trace_segments(
     verifier_channel: &C,
-    public_coin: &mut RandomCoin<E, Sha2_256<E, GuestSha2>>,
+    public_coin: &mut RandomCoin<B, H>,
     air: &FibAir,
 ) -> Result<AuxTraceRandElements<E>> {
     let mut aux_trace_rand_elements = AuxTraceRandElements::<E>::new();
@@ -56,7 +58,7 @@ pub fn aux_trace_segments(
 }
 
 pub fn get_constraint_coffs(
-    public_coin: &mut RandomCoin<E, Sha2_256<E, GuestSha2>>,
+    public_coin: &mut RandomCoin<B, H>,
     air: &FibAir,
 ) -> Result<ConstraintCompositionCoefficients<E>> {
     let constraint_coeffs = air
@@ -90,9 +92,9 @@ pub fn run_main_logic() -> Result<()> {
         .unwrap();
 
     for (a, inv_a) in pub_inputs.inv_nondet.iter() {
-        let a_copy: BaseElement = a.deserialize(&mut rkyv::Infallible).unwrap();
-        let inv_a_copy: BaseElement = inv_a.deserialize(&mut rkyv::Infallible).unwrap();
-        INV_NONDET.lock().insert(a_copy, inv_a_copy);
+        let a_copy: [B; 2] = a.deserialize(&mut rkyv::Infallible).unwrap();
+        let inv_a_copy: [B; 2] = inv_a.deserialize(&mut rkyv::Infallible).unwrap();
+        INV_NONDET_QUAD.lock().insert(a_copy, inv_a_copy);
     }
 
     // Extract context
@@ -108,7 +110,7 @@ pub fn run_main_logic() -> Result<()> {
     let mut public_coin_seed = Vec::new();
     init_public_coin_seed(&mut public_coin_seed, result, context);
 
-    let mut public_coin: RandomCoin<E, Sha2_256<E, GuestSha2>> = RandomCoin::new(&public_coin_seed);
+    let mut public_coin: RandomCoin<B, H> = RandomCoin::new(&public_coin_seed);
 
     // reseed the coin with the commitment to the main trace segment
     public_coin.reseed(verifier_channel.read_trace_commitments()[0]);
@@ -202,7 +204,7 @@ pub fn run_main_logic() -> Result<()> {
     // The verifier uses these commitments to update the public coin and draw random points alpha
     // from them; in the interactive version of the protocol, the verifier sends these alphas to
     // the prover, and the prover uses them to compute and commit to the subsequent FRI layers.
-    let fri_verifier: FriVerifier<E, E, C, H> = FriVerifier::new(
+    let fri_verifier: FriVerifier<B, E, C, H> = FriVerifier::new(
         &mut verifier_channel,
         &mut public_coin,
         air.options().to_fri_options(),

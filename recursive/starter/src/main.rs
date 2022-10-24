@@ -18,10 +18,12 @@ pub mod fib_winter;
 pub mod fibonacci;
 
 fn main() -> Result<()> {
-    // fib_winter::fib_winter()?;
+    fib_winter::fib_winter()?;
+
+    // TODO - add proper cmd options
     // recursive_miden()?;
     // sha3();
-    exp();
+    // exp();
     Ok(())
 }
 
@@ -118,25 +120,25 @@ fn get_verifier_channel(
     ))
 }
 
-//#[allow(dead_code)]
-//fn sha3() {
-//    let mut prover = Prover::new(&std::fs::read(SHA3_PATH).unwrap(), SHA3_ID).unwrap();
-//    let input = "my name is cpunkzzz asdfhjklasdf a lot of bytes";
-//    prover
-//        .add_input(to_vec(&input).unwrap().as_slice())
-//        .unwrap();
-//    let receipt = prover.run().unwrap();
-//    let hashed: String = from_slice(&receipt.get_journal_vec().unwrap()).unwrap();
-//    println!("I know the preimage of {} and I can prove it!", hashed);
-//    receipt.verify(SHA3_ID).unwrap();
-//
-//    let mut hasher = sha2::Sha256::new();
-//    hasher.update(&input);
-//    let result = hasher.finalize();
-//    let s = hex::encode(&result);
-//    assert_eq!(&s, &hashed);
-//}
-//
+#[allow(dead_code)]
+fn sha3() {
+    let mut prover = Prover::new(&std::fs::read(SHA3_PATH).unwrap(), SHA3_ID).unwrap();
+    let input = "my name is cpunkzzz asdfhjklasdf a lot of bytes";
+    prover
+        .add_input(to_vec(&input).unwrap().as_slice())
+        .unwrap();
+    let receipt = prover.run().unwrap();
+    let hashed: String = from_slice(&receipt.get_journal_vec().unwrap()).unwrap();
+    println!("I know the preimage of {} and I can prove it!", hashed);
+    receipt.verify(SHA3_ID).unwrap();
+
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(&input);
+    let result = hasher.finalize();
+    let s = hex::encode(&result);
+    assert_eq!(&s, &hashed);
+}
+
 #[allow(dead_code)]
 fn exp() {
     let mut prover = Prover::new(&std::fs::read(EXP_PATH).unwrap(), EXP_ID).unwrap();
