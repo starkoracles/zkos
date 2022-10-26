@@ -1,4 +1,4 @@
-use miden_air::{FieldElement, PublicInputs};
+use miden_air::{Felt, FieldElement, PublicInputs};
 use rkyv::{Archive, Deserialize, Serialize};
 use serde::{Deserialize as sDeserialize, Serialize as sSerialize};
 use winter_air::{ProofOptions, TraceInfo};
@@ -33,8 +33,8 @@ pub struct FibAirInput {
 
 #[derive(Archive, Deserialize, Serialize)]
 pub struct FibRiscInput<E: FieldElement, H: ElementHasher<BaseField = E::BaseField>> {
-    pub result: E,
+    pub result: Felt,
     pub context: Vec<u8>,
     pub verifier_channel: VerifierChannel<E, H>,
-    pub inv_nondet: Vec<(E, E)>,
+    pub inv_nondet: Vec<([Felt; 2], [Felt; 2])>,
 }
