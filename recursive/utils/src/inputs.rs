@@ -33,8 +33,9 @@ pub struct FibAirInput {
 
 #[derive(Archive, Deserialize, Serialize)]
 pub struct FibRiscInput<E: FieldElement, H: ElementHasher<BaseField = E::BaseField>> {
-    pub result: Felt,
+    pub result: E::BaseField,
     pub context: Vec<u8>,
     pub verifier_channel: VerifierChannel<E, H>,
-    pub inv_nondet: Vec<([Felt; 2], [Felt; 2])>,
+    pub inv_nondet: Vec<(E::BaseField, E::BaseField)>,
+    pub inv_nondet_quad: Vec<([E::BaseField; 2], [E::BaseField; 2])>,
 }
