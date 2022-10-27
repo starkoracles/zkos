@@ -4,19 +4,19 @@ extern crate alloc;
 
 use alloc::format;
 use alloc::vec::Vec;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use miden_air::FieldElement;
 use risc0_zkvm_guest::{env, sha};
 use rkyv::Deserialize;
 use utils::fib::fib_air::FibAir;
-use utils::inputs::{FibAirInput, FibRiscInput};
+use utils::inputs::{ArchivedFibRiscInput, FibAirInput, FibRiscInput};
 use winter_air::{Air, AuxTraceRandElements, ConstraintCompositionCoefficients};
 use winter_crypto::ElementHasher;
 use winter_crypto::{
     hashers::{Sha2_256, ShaHasherT},
     RandomCoin,
 };
-use winter_math::fields::f64::{BaseElement, INV_NONDET_QUAD};
+use winter_math::fields::f64::{BaseElement, INV_NONDET, INV_NONDET_QUAD};
 use winter_math::fields::QuadExtension;
 use winter_utils::Serializable;
 use winter_verifier::{evaluate_constraints, DeepComposer, FriVerifier, VerifierChannel};
@@ -79,19 +79,53 @@ pub fn init_public_coin_seed<S: Serializable>(
 pub fn run_main_logic() -> Result<()> {
     // Deserialize public inputs
     let aux_input: &[u8] = env::read_aux_input();
-    let pub_inputs = unsafe { rkyv::archived_root::<FibRiscInput<E, H>>(&aux_input[..]) };
+    let pub_inputs_arr = unsafe { rkyv::archived_root::<[FibRiscInput<E, H>; 2]>(&aux_input[..]) };
+    let pub_inputs_1 = &pub_inputs_arr[0];
+    let pub_inputs_2 = &pub_inputs_arr[1];
 
+    // verify first proof
+    env::log("Running proof #1 execution trace simulation");
+    let result = pub_inputs_1
+        .result
+        .deserialize(&mut rkyv::Infallible)
+        .unwrap();
+    let air_input_1: FibAirInput = env::read();
+    let air_1 = FibAir::new(air_input_1.trace_info, result, air_input_1.proof_options);
+
+    verify_winter_fib_proof(pub_inputs_1, air_1)
+        .with_context(|| "failed to verify first fib proof")?;
+
+    // verify second proof
+    env::log("Running proof #2 execution trace simulation");
+    let result = pub_inputs_2
+        .result
+        .deserialize(&mut rkyv::Infallible)
+        .unwrap();
+    let air_input_2: FibAirInput = env::read();
+    let air_2 = FibAir::new(air_input_2.trace_info, result, air_input_2.proof_options);
+
+    verify_winter_fib_proof(pub_inputs_2, air_2)
+        .with_context(|| "failed to verify second fib proof")
+}
+
+pub fn verify_winter_fib_proof(pub_inputs: &ArchivedFibRiscInput<E, H>, air: FibAir) -> Result<()> {
     let mut verifier_channel: C = pub_inputs
         .verifier_channel
         .deserialize(&mut rkyv::Infallible)
         .unwrap();
     // Extract result (pub input to Fib proof)
-    let result = pub_inputs
+    let result: B = pub_inputs
         .result
         .deserialize(&mut rkyv::Infallible)
         .unwrap();
 
     for (a, inv_a) in pub_inputs.inv_nondet.iter() {
+        let a_copy: B = a.deserialize(&mut rkyv::Infallible).unwrap();
+        let inv_a_copy: B = inv_a.deserialize(&mut rkyv::Infallible).unwrap();
+        INV_NONDET.lock().insert(a_copy, inv_a_copy);
+    }
+
+    for (a, inv_a) in pub_inputs.inv_nondet_quad.iter() {
         let a_copy: [B; 2] = a.deserialize(&mut rkyv::Infallible).unwrap();
         let inv_a_copy: [B; 2] = inv_a.deserialize(&mut rkyv::Infallible).unwrap();
         INV_NONDET_QUAD.lock().insert(a_copy, inv_a_copy);
@@ -99,10 +133,6 @@ pub fn run_main_logic() -> Result<()> {
 
     // Extract context
     let context = pub_inputs.context.as_slice();
-
-    // Extract Fibonacci AIR
-    let air_input: FibAirInput = env::read();
-    let air = FibAir::new(air_input.trace_info, result, air_input.proof_options);
 
     // build a seed for the public coin; the initial seed is the hash of public inputs and proof
     // context, but as the protocol progresses, the coin will be reseeded with the info received
