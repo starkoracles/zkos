@@ -12,6 +12,7 @@ use winter_air::{Air, FieldExtension, HashFunction, ProofOptions};
 use winter_crypto::hashers::DefaultSha2;
 use winter_crypto::hashers::Sha2_256;
 use winter_math::fields::f64::{BaseElement, INV_NONDET};
+use winter_math::log2;
 use winter_verifier::VerifierChannel;
 
 pub mod examples;
@@ -22,14 +23,22 @@ pub mod fib_winter;
 #[command(author, version, about, long_about = None)]
 struct ProofArgs {
     /// Number of FRI queries to run in the winter proof
-    #[arg(short, long, default_value_t = 20)]
+    #[arg(short, long, default_value_t = 9)]
     fri_queries: u32,
+
+    /// Blowup factor (b) -- R = log2(b).
+    #[arg(short, long, default_value_t = 128)]
+    blowup_factor: u32,
+
+    /// Grinding factor
+    #[arg(short, long, default_value_t = 20)]
+    grinding_factor: u32,
 }
 
 fn main() -> Result<()> {
-    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+    env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
     let args = ProofArgs::parse();
-    fib_winter::fib_winter(get_proof_options(args.fri_queries))?;
+    fib_winter::fib_winter(get_proof_options(args))?;
 
     // TODO - add proper cmd options
     // examples::recursive_miden()?;
@@ -38,20 +47,20 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn get_proof_options(fri_queries: u32) -> ProofOptions {
-    let grinding_factor = 20u32;
+fn get_proof_options(args: ProofArgs) -> ProofOptions {
+    let R = log2(args.blowup_factor as usize);
     // λ ≥ min{ζ + R · s, log2|K|} − 1 from ethSTARK paper
     // Since we are using extension field of degree 2, K = P^2.
     // P is greater than 2^62 and therefore log2|K| > 124.
-    // We are grinding for 20 bits. R = 3 and thus λ = 20 + 3*FRIQueries - 1
+    // We are grinding for G bits. R = log2(blowup_factor) and thus λ = G + R*FRIQueries - 1
     info!(
         "Generating winter proofs with {}bits of security",
-        grinding_factor + (3 * fri_queries) - 1
+        args.grinding_factor + (R * args.fri_queries) - 1
     );
     ProofOptions::new(
-        fri_queries as usize,
-        8,
-        grinding_factor,
+        args.fri_queries as usize,
+        args.blowup_factor as usize,
+        args.grinding_factor,
         HashFunction::Sha2_256,
         FieldExtension::Quadratic,
         8,
