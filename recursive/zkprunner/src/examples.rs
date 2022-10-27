@@ -1,4 +1,6 @@
 use anyhow::{anyhow, Result};
+use env_logger::Env;
+use log::info;
 use methods::{EXP_ID, EXP_PATH, RECURSIVE_ID, RECURSIVE_PATH, SHA3_ID, SHA3_PATH};
 use miden::{Program, ProofOptions};
 use miden_air::{Felt, FieldElement, ProcessorAir, PublicInputs};
@@ -14,29 +16,18 @@ use winter_crypto::hashers::Sha2_256;
 use winter_math::fields::f64::{BaseElement, INV_NONDET};
 use winter_verifier::VerifierChannel;
 
-pub mod fib_winter;
-pub mod fibonacci;
-
-fn main() -> Result<()> {
-    fib_winter::fib_winter()?;
-
-    // TODO - add proper cmd options
-    // recursive_miden()?;
-    // sha3();
-    // exp();
-    Ok(())
-}
+use utils::fibonacci_miden;
 
 #[allow(dead_code)]
 fn recursive_miden() -> Result<()> {
     println!("============================================================");
 
-    let proof_options = get_proof_options();
+    let proof_options = get_proof_options_miden();
 
     // instantiate and prepare the example
-    let example = fibonacci::get_example(1024);
+    let example = fibonacci_miden::get_example(1024);
 
-    let fibonacci::Example {
+    let fibonacci_miden::Example {
         program,
         inputs,
         num_outputs,
@@ -154,6 +145,6 @@ fn exp() {
     assert_eq!(res_felt, BaseElement::new(a) * BaseElement::new(b));
 }
 
-pub fn get_proof_options() -> ProofOptions {
+pub fn get_proof_options_miden() -> ProofOptions {
     ProofOptions::with_sha2()
 }
