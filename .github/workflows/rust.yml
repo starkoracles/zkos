@@ -23,6 +23,5 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           use-cross: true
-          working-directory: ./recursive
           command: build
-          args: --target armv7-unknown-linux-gnueabihf --release
+          args: --target armv7-unknown-linux-gnueabihf --release --manifest-path recursive/Cargo.toml
