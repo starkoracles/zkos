@@ -23,5 +23,6 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           use-cross: true
+          working-directory: ./recursive
           command: build
-          args: --target armv7-unknown-linux-gnueabihf
+          args: --target armv7-unknown-linux-gnueabihf --release
