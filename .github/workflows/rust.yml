@@ -10,19 +10,19 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  linux_arm7:
-    name: Linux ARMv7
+  linux_aarch64:
+    name: Linux aarch64
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly-2022-06-13
-          target: armv7-unknown-linux-gnueabihf
+          target: aarch64-unknown-linux-gnu
           override: true
       - uses: ClementTsang/cargo-action@v0.0.2
         with:
           directory: ./recursive
           use-cross: true
           command: build
-          args: --target armv7-unknown-linux-gnueabihf --release --manifest-path recursive/Cargo.toml
+          args: --target aarch64-unknown-linux-gnu --release
