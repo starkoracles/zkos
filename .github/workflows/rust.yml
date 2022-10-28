@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-22.04
       strategy:
         matrix:
             target:
@@ -29,11 +29,11 @@ jobs:
             target: ${{ matrix.target }}
             override: true
         - name: Install Build Dependencies
-          run: sudo apt-get update && sudo apt-get install pkg-config libssl-dev
+          run: sudo apt-get update && sudo apt-get install build-essential pkg-config libssl-dev
         - uses: ClementTsang/cargo-action@v0.0.2
           with:
             directory: ./recursive
-            use-cross: true
+            # use-cross: true
             command: build
             args: --target ${{ matrix.target }} --release
         - name: Archive ${{ matrix.target }} binary
