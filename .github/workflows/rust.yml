@@ -10,27 +10,35 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  linux_aarch64:
-    name: Linux aarch64
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository and submodules
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly-2022-06-13
-          target: aarch64-unknown-linux-gnu
-          override: true
-      - uses: ClementTsang/cargo-action@v0.0.2
-        with:
-          directory: ./recursive
-          use-cross: true
-          command: build
-          args: --target aarch64-unknown-linux-gnu --release
-      - name: Archive arch64 binary
-        uses: actions/upload-artifact@v3
-        with:
-          name: zkp-runner-arch64
-          path: target/release/zkprunner
+  build:
+    - name: Linux aarch64
+      runs-on: ubuntu-latest
+      strategy:
+      matrix:
+          target:
+              - aarch64-unknown-linux-gnu
+              - aarch64-apple-darwin
+              - x86_64-unknown-linux-gnu
+      steps:
+        - name: Checkout repository and submodules
+          uses: actions/checkout@v2
+          with:
+            submodules: recursive
+        - uses: actions-rs/toolchain@v1
+          with:
+            toolchain: nightly-2022-06-13
+            target: ${{ matrix.target }}
+            override: true
+        - name: Install Build Dependencies
+          run: sudo apt-get update && sudo apt-get install pkg-config libssl-dev clang
+        - uses: ClementTsang/cargo-action@v0.0.2
+          with:
+            directory: ./recursive
+            use-cross: true
+            command: build
+            args: --target ${{ matrix.target }} --release
+        - name: Archive ${{ matrix.target }} binary
+          uses: actions/upload-artifact@v3
+          with:
+            name: zkp-runner-${{ matrix.target }}
+            path: target/release/zkprunner
