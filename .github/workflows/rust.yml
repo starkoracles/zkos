@@ -40,4 +40,4 @@ jobs:
           uses: actions/upload-artifact@v3
           with:
             name: zkp-runner-${{ matrix.target }}
-            path: target/release/zkprunner
+            path: recursive/target/release/zkprunner
