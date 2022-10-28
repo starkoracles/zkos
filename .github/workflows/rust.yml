@@ -11,26 +11,26 @@ env:
 
 jobs:
   linux_aarch64:
-    - name: Linux aarch64
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout repository and submodules
-          uses: actions/checkout@v2
-          with:
-            submodules: recursive
-        - uses: actions-rs/toolchain@v1
-          with:
-            toolchain: nightly-2022-06-13
-            target: aarch64-unknown-linux-gnu
-            override: true
-        - uses: ClementTsang/cargo-action@v0.0.2
-          with:
-            directory: ./recursive
-            use-cross: true
-            command: build
-            args: --target aarch64-unknown-linux-gnu --release
-        - name: Archive arch64 binary
-          uses: actions/upload-artifact@v3
-          with:
-            name: zkp-runner-arch64
-            path: target/release/zkprunner
+    name: Linux aarch64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2022-06-13
+          target: aarch64-unknown-linux-gnu
+          override: true
+      - uses: ClementTsang/cargo-action@v0.0.2
+        with:
+          directory: ./recursive
+          use-cross: true
+          command: build
+          args: --target aarch64-unknown-linux-gnu --release
+      - name: Archive arch64 binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: zkp-runner-arch64
+          path: target/release/zkprunner
