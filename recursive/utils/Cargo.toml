@@ -10,4 +10,6 @@ winter-math = { default-features = false, path = "../../winterfell/math" }
 winter-verifier = { default-features = false, path = "../../winterfell/verifier"  }
 winter-prover = { default-features = false, path = "../../winterfell/prover"  }
 miden-air = { path = "../../miden/air"}
+miden = { path = "../../miden/miden"}
+miden-core = { path = "../../miden/core"}
 serde = "1.0.144"

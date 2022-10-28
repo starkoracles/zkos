@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Context, Result};
+use log::{debug, info};
 use methods::{FIB_VERIFY_ID, FIB_VERIFY_PATH};
 use miden::StarkProof;
 use risc0_zkvm::{host::Prover, serde::to_vec};
@@ -15,14 +16,16 @@ type B = BaseElement;
 type E = QuadExtension<B>;
 type H = Sha2_256<B, DefaultSha2>;
 
-pub fn fib_winter() -> Result<()> {
-    println!("============================================================");
+pub fn fib_winter(proof_options: ProofOptions) -> Result<()> {
+    info!("Generating winter fib proofs...");
 
     // Initialize Risc0 prover
     let mut prover = Prover::new(&std::fs::read(FIB_VERIFY_PATH).unwrap(), FIB_VERIFY_ID).unwrap();
 
-    let (pub_inputs_1024, fib_air_input_1024) = generate_winter_fib_proof(1024)?;
-    let (pub_inputs_2048, fib_air_input_2048) = generate_winter_fib_proof(2048)?;
+    let (pub_inputs_1024, fib_air_input_1024) =
+        generate_winter_fib_proof(proof_options.clone(), 1024)?;
+    let (pub_inputs_2048, fib_air_input_2048) =
+        generate_winter_fib_proof(proof_options.clone(), 2048)?;
 
     let pub_inputs_aux = rkyv::to_bytes::<_, 256>(&[pub_inputs_1024, pub_inputs_2048]).unwrap();
     prover.add_input_u8_slice_aux(&pub_inputs_aux);
@@ -44,19 +47,24 @@ pub fn fib_winter() -> Result<()> {
         .context("failed to add pub_inputs_2048 to prover")?;
 
     // Generate a proof of Winterfell verification using Risc0 prover
+    info!("Running risc0 prover...");
     let receipt = prover.run().unwrap();
+    info!("Verifying receipt of the two fib proofs in risc0");
     receipt.verify(FIB_VERIFY_ID).unwrap();
 
     Ok(())
 }
 
-fn generate_winter_fib_proof(n: u64) -> Result<(FibRiscInput<E, H>, FibAirInput)> {
+fn generate_winter_fib_proof(
+    proof_options: ProofOptions,
+    n: usize,
+) -> Result<(FibRiscInput<E, H>, FibAirInput)> {
     // Generate a Fibonacci proof using Winterfell prover
-    let e = FibExample::new(1024, get_proof_options());
+    let e = FibExample::new(n, proof_options);
     let proof = e.prove();
-    println!("--------------------------------");
-    println!("Trace length: {}", proof.context.trace_length());
-    println!("Trace queries length: {}", proof.trace_queries.len());
+    debug!("--------------------------------");
+    debug!("Trace length: {}", proof.context.trace_length());
+    debug!("Trace queries length: {}", proof.trace_queries.len());
     verify_with_winter(proof.clone(), e.result.clone())?;
 
     // Expose verification data as public inputs to Risc0 prover
@@ -80,18 +88,6 @@ fn generate_winter_fib_proof(n: u64) -> Result<(FibRiscInput<E, H>, FibAirInput)
     };
 
     Ok((pub_inputs, fib_air_input))
-}
-
-fn get_proof_options() -> ProofOptions {
-    ProofOptions::new(
-        1,
-        8,
-        16,
-        HashFunction::Sha2_256,
-        FieldExtension::Quadratic,
-        8,
-        256,
-    )
 }
 
 fn verify_with_winter(proof: StarkProof, result: B) -> Result<()> {

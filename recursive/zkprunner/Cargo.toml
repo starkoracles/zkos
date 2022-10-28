@@ -1,5 +1,5 @@
 [package]
-name = "starter"
+name = "zkprunner"
 version = "0.1.0"
 edition = "2021"
 
@@ -19,3 +19,6 @@ sha2 = "0.10.2"
 sha3 = "0.10.2"
 hex = "0.4.3"
 anyhow = "1.0.62"
+log = "0.4.17"
+env_logger = "0.9.1"
+clap = {version = "4.0.18", features = ["derive"]}
