@@ -35,7 +35,7 @@ We chose to showcase how powerful this approach can be by leveraging two leading
 * Ensure you've cloned the repo with all submodules
 * Install rustup
 * This project uses a nightly version of Rust. The rust-toolchain file will be used by cargo to automatically install the correct version.
-* `cd recursive`
+* `cd zkos`
 * `cargo run --release` -- please note, compilation time will be high (around 20 minutes on MacBook M1) due to Risc0 circuit size configuration. For development use-cases, feel free to modify [the build configuration](https://github.com/starkoracles/risc0-test/blob/main/zkos/methods/build.rs#L8) to 12.
 
 
