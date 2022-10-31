@@ -6,7 +6,7 @@
 
 A zkOS takes a different approach to most infrastructure projects we are currently seeing. Instead of building a vertical ecosystem, we believe that creating an open layer will enable faster growth and will enable zk to become mainstream faster. We see our zkOS evolving into a protocol which will serve a multitude of core functions necessary for deploying any zk-based dApp:
 
-* Scale - We want to allow apps to achieve scale and cost effectiveness, by allowing different apps to collaborate and aggregate their proofs into a single final proof to be posted on chain.
+* Scale - We want to allow apps to achieve scale and cost-effectiveness, by allowing different apps to collaborate and aggregate their proofs into a single final proof to be posted on chain.
 * Interoperability - We are in the early innings of innovation in zk. We believe that creating a unified API for zk will encourage the creation of different approaches which will fit different problems.
 * Batteries included - Most zk libraries aren't ready to deployment, we would like to make it easy and quick to reach production, without needing to rebuild everything yourself.
 
@@ -24,7 +24,7 @@ We chose to showcase how powerful this approach can be by leveraging two leading
 | Deployment of WASM verifier | Start experimenting with on-chain proofs |  
 | Solidity verifier for Risc0 | EVM on-chain proofs |
 | Miden support | Allow full cross-VM interoperability |
-| Integrate mul goldilocks accelerator | Performance |
+| Integrate MUL Goldilocks accelerator | Performance |
 
 ## Benchmarks
 
@@ -35,8 +35,8 @@ We chose to showcase how powerful this approach can be by leveraging two leading
 * Ensure you've cloned the repo with all submodules
 * Install rustup
 * This project uses a nightly version of Rust. The rust-toolchain file will be used by cargo to automatically install the correct version.
-* cd recursive
-* cargo run --release -- please note, compilation time will be high (around 20 minutes on MacBook M1) due to Risc0 circuit size configuration. For development use-cases, feel free to modify [the build configuration](https://github.com/starkoracles/risc0-test/blob/main/zkos/methods/build.rs#L8) to 12.
+* `cd recursive`
+* `cargo run --release` -- please note, compilation time will be high (around 20 minutes on MacBook M1) due to Risc0 circuit size configuration. For development use-cases, feel free to modify [the build configuration](https://github.com/starkoracles/risc0-test/blob/main/zkos/methods/build.rs#L8) to 12.
 
 
 ## Security parameters
