@@ -1,9 +1,9 @@
 [submodule "miden"]
 	path = miden
-	url = git@github.com:cpunkzzz/miden.git
+	url = git@github.com:starkoracles/miden.git
 [submodule "winterfell"]
 	path = winterfell
-	url = git@github.com:cpunkzzz/winterfell.git
+	url = git@github.com:starkoracles/winterfell.git
 [submodule "risc0"]
 	path = risc0
-	url = git@github.com:cpunkzzz/risc0.git
+	url = git@github.com:starkoracles/risc0.git
