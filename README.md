@@ -24,6 +24,7 @@ We chose to showcase how powerful this approach can be by leveraging two leading
 | Deployment of WASM verifier | Start experimenting with on-chain proofs |  
 | Solidity verifier for Risc0 | EVM on-chain proofs |
 | Miden support | Allow full cross-VM interoperability |
+| Integrate mul goldilocks accelerator | Performance |
 
 ## Benchmarks
 
@@ -35,4 +36,13 @@ We chose to showcase how powerful this approach can be by leveraging two leading
 * Install rustup
 * This project uses a nightly version of Rust. The rust-toolchain file will be used by cargo to automatically install the correct version.
 * cd recursive
-* cargo run --release -- please note, compilation time will be high (around 20 minutes on MacBook M1) due to Risc0 circuit size configuration. For development use-cases, feel free to modify [the build configuration](https://github.com/starkoracles/risc0-test/blob/main/recursive/methods/build.rs#L8) to 12.
+* cargo run --release -- please note, compilation time will be high (around 20 minutes on MacBook M1) due to Risc0 circuit size configuration. For development use-cases, feel free to modify [the build configuration](https://github.com/starkoracles/risc0-test/blob/main/zkos/methods/build.rs#L8) to 12.
+
+
+## Security parameters
+
+The default implementation generates proofs with 82bit security. This is relatively slow to run (around 4 minutes), for development use-cases, feel free to use the cmd parameters to lower security to run faster. Please refer to [security analysis](https://github.com/starkoracles/risc0-test/blob/main/zkos/zkprunner/src/main.rs#L52) (from ethSTARK paper).
+
+## Profiling the execution trace
+
+(To be added)
