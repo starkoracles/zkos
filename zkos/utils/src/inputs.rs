@@ -1,7 +1,8 @@
-use miden_air::{Felt, FieldElement, PublicInputs};
+use miden_air::PublicInputs;
 use rkyv::{Archive, Deserialize, Serialize};
 use serde::{Deserialize as sDeserialize, Serialize as sSerialize};
 use winter_air::{ProofOptions, TraceInfo};
+use winter_math::FieldElement;
 use winter_prover::crypto::ElementHasher;
 use winter_verifier::VerifierChannel;
 
@@ -36,6 +37,6 @@ pub struct FibRiscInput<E: FieldElement, H: ElementHasher<BaseField = E::BaseFie
     pub result: E::BaseField,
     pub context: Vec<u8>,
     pub verifier_channel: VerifierChannel<E, H>,
-    pub inv_nondet: Vec<(E::BaseField, E::BaseField)>,
-    pub inv_nondet_quad: Vec<([E::BaseField; 2], [E::BaseField; 2])>,
+    pub inv_nondet: Vec<(u64, u64)>,
+    pub inv_nondet_quad: Vec<([u64; 2], [u64; 2])>,
 }

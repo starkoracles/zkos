@@ -1,6 +1,7 @@
 use winter_air::proof::StarkProof;
 use winter_air::ProofOptions;
-use winter_math::{fields::f64::BaseElement, FieldElement};
+use winter_math::fields::f64_risc0::DefaultNativeMul;
+use winter_math::{fields::f64_risc0::BaseElement, FieldElement};
 use winter_prover::Prover;
 use winter_verifier::VerifierError;
 
@@ -14,13 +15,13 @@ pub trait Example {
 
 impl Example for FibExample {
     fn prove(&self) -> StarkProof {
-        let prover = FibProver::new(self.options.clone());
+        let prover: FibProver<DefaultNativeMul> = FibProver::new(self.options.clone());
         let trace = prover.build_trace(self.sequence_length);
         prover.prove(trace).unwrap()
     }
 
     fn verify(&self, proof: StarkProof) -> Result<(), VerifierError> {
-        winter_verifier::verify::<FibAir>(proof, self.result)
+        winter_verifier::verify::<FibAir<DefaultNativeMul>>(proof, self.result)
     }
 }
 
