@@ -16,7 +16,8 @@ use winter_crypto::{
     RandomCoin,
 };
 use winter_math::fields::f64_risc0::{
-    AccelBaseElementRisc0, BaseElement, NativeMontMul, INV_NONDET, INV_NONDET_QUAD,
+    AccelBaseElementRisc0, BaseElement, DefaultNativeMul, NativeMontMul, INV_NONDET,
+    INV_NONDET_QUAD,
 };
 use winter_math::fields::QuadExtension;
 use winter_math::FieldElement;
@@ -39,17 +40,21 @@ impl NativeMontMul for Risc0NativeMul {
     fn native_mul(a: u64, b: u64) -> u64 {
         let res = mul::mul_goldilocks(&a, &b);
         let r64 = res.get_u64();
-        let reference = BaseElement::from_mont(a) * BaseElement::from_mont(b);
-        assert!(
-            reference.val == r64,
-            "reference: {} != r64: {}, a = {}, b = {}, ref = {}, r64 = {}",
-            reference.val,
-            r64,
-            a,
-            b,
-            reference,
-            BaseElement::from_mont(r64)
-        );
+        // let c = DefaultNativeMul::native_mul(a, b);
+        // let d = (a as u128) * (b as u128);
+        // let reference = BaseElement::from_mont(a) * BaseElement::from_mont(b);
+        // assert!(
+        //     reference.val == r64,
+        //     "reference: {} != r64: {}, a = {}, b = {}, ref = {}, r64 = {}, c = {}, d = {}",
+        //     reference.val,
+        //     r64,
+        //     BaseElement::from_mont(a).inner(),
+        //     BaseElement::from_mont(b).inner(),
+        //     reference,
+        //     BaseElement::from_mont(r64),
+        //     c,
+        //     d
+        // );
         r64
     }
 }
