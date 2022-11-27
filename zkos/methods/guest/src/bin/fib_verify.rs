@@ -40,20 +40,29 @@ impl NativeMontMul for Risc0NativeMul {
     fn native_mul_ext(a: [u64; 2], b: [u64; 2]) -> [u64; 2] {
         let res = mul::mul_goldilocks(&a, &b);
         let r64 = res.get_u64();
-        // let c = DefaultNativeMul::native_mul(a, b);
-        // let d = (a as u128) * (b as u128);
-        // let reference = BaseElement::from_mont(a) * BaseElement::from_mont(b);
+
+        // let a_fp = [BaseElement::from_mont(a[0]), BaseElement::from_mont(a[1])];
+        // let b_fp = [BaseElement::from_mont(b[0]), BaseElement::from_mont(b[1])];
+
+        // let a0b0 = a_fp[0] * b_fp[0];
+        // let a1b1 = a_fp[1] * b_fp[1];
+        // let first = a0b0 - a1b1.double();
+        // let a0a1 = a_fp[0] + a_fp[1];
+        // let b0b1 = b_fp[0] + b_fp[1];
+        // let second = a0a1 * b0b1 - a0b0;
+        // env::log(&format!(
+        //     "RUST: a: {:?}, b: {:?}, a0b0: {}, a1b1: {}, first: {}, a0a1: {}, b0b1: {}, second: {}",
+        //     a, b, a0b0.val, a1b1.val, first.val, a0a1.val, b0b1.val, second.val,
+        // ));
+        // let c = [first.val, second.val];
+
         // assert!(
-        //     reference.val == r64,
-        //     "reference: {} != r64: {}, a = {}, b = {}, ref = {}, r64 = {}, c = {}, d = {}",
-        //     reference.val,
-        //     r64,
-        //     BaseElement::from_mont(a).inner(),
-        //     BaseElement::from_mont(b).inner(),
-        //     reference,
-        //     BaseElement::from_mont(r64),
+        //     c == r64,
+        //     "c: {:?} != r64: {:?}, a = {:?}, b = {:?}",
         //     c,
-        //     d
+        //     r64,
+        //     a,
+        //     b
         // );
         r64
     }
