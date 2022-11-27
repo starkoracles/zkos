@@ -37,7 +37,7 @@ impl ShaHasherT for GuestSha2 {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Risc0NativeMul {}
 impl NativeMontMul for Risc0NativeMul {
-    fn native_mul(a: u64, b: u64) -> u64 {
+    fn native_mul_ext(a: [u64; 2], b: [u64; 2]) -> [u64; 2] {
         let res = mul::mul_goldilocks(&a, &b);
         let r64 = res.get_u64();
         // let c = DefaultNativeMul::native_mul(a, b);
