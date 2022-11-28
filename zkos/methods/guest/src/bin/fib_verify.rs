@@ -331,7 +331,7 @@ pub fn main() {
     match run_main_logic() {
         Ok(_) => {}
         Err(e) => {
-            env::log(&format!("error: {}", e));
+            env::log(&format!("error: {:?}", e));
         }
     }
 }
