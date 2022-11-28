@@ -5,7 +5,7 @@ fn main() {
         "methods-guest",
         risc0_build::GuestOptions {
             // change to 16 to run miden fully (will increase compile time)
-            code_limit: 16,
+            code_limit: 12,
             features: vec![],
         },
     )]);

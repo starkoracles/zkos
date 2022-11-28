@@ -5,10 +5,9 @@ extern crate alloc;
 use alloc::format;
 use alloc::vec::Vec;
 use anyhow::{anyhow, Context, Result};
-use miden_air::FieldElement;
-use risc0_zkvm_guest::{env, sha};
+use risc0_zkvm_guest::{env, mul, sha};
 use rkyv::Deserialize;
-use utils::fib::fib_air::FibAir;
+use utils::fib::fib_air::FibAir as FA;
 use utils::inputs::{ArchivedFibRiscInput, FibAirInput, FibRiscInput};
 use winter_air::{Air, AuxTraceRandElements, ConstraintCompositionCoefficients};
 use winter_crypto::ElementHasher;
@@ -16,8 +15,12 @@ use winter_crypto::{
     hashers::{Sha2_256, ShaHasherT},
     RandomCoin,
 };
-use winter_math::fields::f64::{BaseElement, INV_NONDET, INV_NONDET_QUAD};
+use winter_math::fields::f64_risc0::{
+    AccelBaseElementRisc0, BaseElement, DefaultNativeMul, NativeMontMul, INV_NONDET,
+    INV_NONDET_QUAD,
+};
 use winter_math::fields::QuadExtension;
+use winter_math::FieldElement;
 use winter_utils::Serializable;
 use winter_verifier::{evaluate_constraints, DeepComposer, FriVerifier, VerifierChannel};
 
@@ -31,8 +34,43 @@ impl ShaHasherT for GuestSha2 {
     }
 }
 
-type B = BaseElement;
-type E = QuadExtension<BaseElement>;
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Risc0NativeMul {}
+impl NativeMontMul for Risc0NativeMul {
+    fn native_mul_ext(a: [u64; 2], b: [u64; 2]) -> [u64; 2] {
+        let res = mul::mul_goldilocks(&a, &b);
+        let r64 = res.get_u64();
+
+        // let a_fp = [BaseElement::from_mont(a[0]), BaseElement::from_mont(a[1])];
+        // let b_fp = [BaseElement::from_mont(b[0]), BaseElement::from_mont(b[1])];
+
+        // let a0b0 = a_fp[0] * b_fp[0];
+        // let a1b1 = a_fp[1] * b_fp[1];
+        // let first = a0b0 - a1b1.double();
+        // let a0a1 = a_fp[0] + a_fp[1];
+        // let b0b1 = b_fp[0] + b_fp[1];
+        // let second = a0a1 * b0b1 - a0b0;
+        // env::log(&format!(
+        //     "RUST: a: {:?}, b: {:?}, a0b0: {}, a1b1: {}, first: {}, a0a1: {}, b0b1: {}, second: {}",
+        //     a, b, a0b0.val, a1b1.val, first.val, a0a1.val, b0b1.val, second.val,
+        // ));
+        // let c = [first.val, second.val];
+
+        // assert!(
+        //     c == r64,
+        //     "c: {:?} != r64: {:?}, a = {:?}, b = {:?}",
+        //     c,
+        //     r64,
+        //     a,
+        //     b
+        // );
+        r64
+    }
+}
+
+type B = AccelBaseElementRisc0<Risc0NativeMul>;
+type FibAir = FA<Risc0NativeMul>;
+type E = QuadExtension<B>;
 type H = Sha2_256<B, GuestSha2>;
 type C = VerifierChannel<E, H>;
 
@@ -120,14 +158,14 @@ pub fn verify_winter_fib_proof(pub_inputs: &ArchivedFibRiscInput<E, H>, air: Fib
         .unwrap();
 
     for (a, inv_a) in pub_inputs.inv_nondet.iter() {
-        let a_copy: B = a.deserialize(&mut rkyv::Infallible).unwrap();
-        let inv_a_copy: B = inv_a.deserialize(&mut rkyv::Infallible).unwrap();
+        let a_copy: u64 = a.deserialize(&mut rkyv::Infallible).unwrap();
+        let inv_a_copy: u64 = inv_a.deserialize(&mut rkyv::Infallible).unwrap();
         INV_NONDET.lock().insert(a_copy, inv_a_copy);
     }
 
     for (a, inv_a) in pub_inputs.inv_nondet_quad.iter() {
-        let a_copy: [B; 2] = a.deserialize(&mut rkyv::Infallible).unwrap();
-        let inv_a_copy: [B; 2] = inv_a.deserialize(&mut rkyv::Infallible).unwrap();
+        let a_copy: [u64; 2] = a.deserialize(&mut rkyv::Infallible).unwrap();
+        let inv_a_copy: [u64; 2] = inv_a.deserialize(&mut rkyv::Infallible).unwrap();
         INV_NONDET_QUAD.lock().insert(a_copy, inv_a_copy);
     }
 
@@ -293,7 +331,7 @@ pub fn main() {
     match run_main_logic() {
         Ok(_) => {}
         Err(e) => {
-            env::log(&format!("error: {}", e));
+            env::log(&format!("error: {:?}", e));
         }
     }
 }

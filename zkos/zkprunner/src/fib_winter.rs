@@ -1,16 +1,15 @@
 use anyhow::{anyhow, Context, Result};
 use log::{debug, info};
 use methods::{FIB_VERIFY_ID, FIB_VERIFY_PATH};
-use miden::StarkProof;
 use risc0_zkvm::{host::Prover, serde::to_vec};
 use utils::fib::example::{Example, FibExample};
 use utils::fib::fib_air::FibAir;
 use utils::inputs::{FibAirInput, FibRiscInput};
-use winter_air::{Air, FieldExtension, HashFunction, ProofOptions};
+use winter_air::{Air, ProofOptions};
 use winter_crypto::hashers::{DefaultSha2, Sha2_256};
-use winter_math::fields::f64::{BaseElement, INV_NONDET, INV_NONDET_QUAD};
+use winter_math::fields::f64_risc0::{BaseElement, DefaultNativeMul, INV_NONDET, INV_NONDET_QUAD};
 use winter_math::fields::QuadExtension;
-use winter_verifier::{Serializable, VerifierChannel};
+use winter_verifier::{Serializable, StarkProof, VerifierChannel};
 
 type B = BaseElement;
 type E = QuadExtension<B>;
@@ -70,7 +69,8 @@ fn generate_winter_fib_proof(
     // Expose verification data as public inputs to Risc0 prover
     let air = FibAir::new(proof.get_trace_info(), e.result, proof.options().clone());
     let verifier_channel: VerifierChannel<E, H> =
-        VerifierChannel::new::<FibAir>(&air, proof.clone()).map_err(|msg| anyhow!(msg))?;
+        VerifierChannel::new::<FibAir<DefaultNativeMul>>(&air, proof.clone())
+            .map_err(|msg| anyhow!(msg))?;
 
     let mut proof_context = Vec::new();
     proof.context.write_into(&mut proof_context);
@@ -91,5 +91,5 @@ fn generate_winter_fib_proof(
 }
 
 fn verify_with_winter(proof: StarkProof, result: B) -> Result<()> {
-    winter_verifier::verify::<FibAir>(proof, result).map_err(|msg| anyhow!(msg))
+    winter_verifier::verify::<FibAir<DefaultNativeMul>>(proof, result).map_err(|msg| anyhow!(msg))
 }

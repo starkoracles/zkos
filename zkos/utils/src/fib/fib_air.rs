@@ -6,21 +6,24 @@ use winter_air::ProofOptions;
 use winter_air::{
     Air, AirContext, Assertion, EvaluationFrame, TraceInfo, TransitionConstraintDegree,
 };
-use winter_math::{fields::f64::BaseElement, FieldElement};
+use winter_math::{
+    fields::f64_risc0::{AccelBaseElementRisc0, NativeMontMul},
+    FieldElement,
+};
 
 const TRACE_WIDTH: usize = 2;
 
 // FIBONACCI AIR
 // ================================================================================================
 
-pub struct FibAir {
-    context: AirContext<BaseElement>,
-    result: BaseElement,
+pub struct FibAir<A: NativeMontMul> {
+    context: AirContext<AccelBaseElementRisc0<A>>,
+    result: AccelBaseElementRisc0<A>,
 }
 
-impl Air for FibAir {
-    type BaseField = BaseElement;
-    type PublicInputs = BaseElement;
+impl<A: NativeMontMul> Air for FibAir<A> {
+    type BaseField = AccelBaseElementRisc0<A>;
+    type PublicInputs = AccelBaseElementRisc0<A>;
 
     // CONSTRUCTOR
     // --------------------------------------------------------------------------------------------
