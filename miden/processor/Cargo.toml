@@ -1,0 +1,35 @@
+[package]
+name = "miden-processor"
+version = "0.2.0"
+description = "Miden VM processor"
+authors = ["miden contributors"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/maticnetwork/miden"
+categories = ["emulators", "no-std"]
+keywords = ["miden", "virtual-machine"]
+edition = "2021"
+rust-version = "1.62"
+
+[lib]
+bench = false
+doctest = false
+
+[[bench]]
+name = "program_execution"
+harness = false
+
+[features]
+default = ["std"]
+std = ["vm-core/std", "winterfell/std", "log/std"]
+
+[dependencies]
+log = "0.4.14"
+vm-core = { package = "miden-core", path = "../core", version = "0.2", default-features = false }
+winterfell = { package = "winter-prover", version = "0.4", default-features = false, path = "../../winterfell/prover"  }
+
+[dev-dependencies]
+criterion = "0.3"
+logtest = { version = "2.0.0", default-features = false  }
+miden-assembly = { package = "miden-assembly", path = "../assembly", version = "0.2", default-features = false }
+rand-utils = { package = "winter-rand-utils", version = "0.4", path = "../../winterfell/utils/rand"  }

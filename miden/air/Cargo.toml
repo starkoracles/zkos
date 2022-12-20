@@ -1,0 +1,29 @@
+[package]
+name = "miden-air"
+version = "0.2.0"
+description = "Algebraic intermediate representation of Miden VM processor"
+authors = ["miden contributors"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/maticnetwork/miden"
+categories = ["cryptography", "no-std"]
+keywords = ["air", "arithmetization", "crypto", "miden"]
+edition = "2021"
+rust-version = "1.62"
+
+[lib]
+bench = false
+doctest = false
+
+[features]
+default = ["std"]
+std = ["vm-core/std", "winter-air/std"]
+
+[dependencies]
+vm-core = { package = "miden-core", path = "../core", version = "0.2", default-features = false }
+winter-air = { package = "winter-air", version = "0.4", default-features = false, path = "../../winterfell/air"  }
+serde = "1.0.144"
+
+[dev-dependencies]
+proptest = "1.0.0"
+rand-utils = { package = "winter-rand-utils", version = "0.4", path = "../../winterfell/utils/rand"  }

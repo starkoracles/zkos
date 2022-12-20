@@ -1,6 +1,3 @@
-[submodule "miden"]
-	path = miden
-	url = git@github.com:starkoracles/miden.git
 [submodule "winterfell"]
 	path = winterfell
 	url = git@github.com:starkoracles/winterfell.git
