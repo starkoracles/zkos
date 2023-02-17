@@ -1,0 +1,52 @@
+[package]
+name = "winter-math"
+version = "0.4.0"
+description = "Math library for the Winterfell STARK prover/verifier"
+authors = ["winterfell contributors"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/novifinancial/winterfell"
+documentation = "https://docs.rs/winter-math/0.4.0"
+categories = ["cryptography", "no-std"]
+keywords = ["crypto", "finite-fields", "polynomials", "fft"]
+edition = "2021"
+rust-version = "1.60"
+
+[lib]
+bench = false
+
+[[bench]]
+name = "fft"
+harness = false
+
+[[bench]]
+name = "field"
+harness = false
+
+[[bench]]
+name = "polynom"
+harness = false
+
+[features]
+concurrent = ["utils/concurrent", "std"]
+default = ["std"]
+std = ["utils/std"]
+use-hints = []
+generate-hints = []
+
+[dependencies]
+utils = { version = "0.4", path = "../utils/core", package = "winter-utils", default-features = false }
+serde = { version = "1.0.144", features = ["derive"] }
+rkyv = { git = "https://github.com/cpunkzzz/rkyv.git", rev = "b1cac53b9bbc16b8afa878dfa71d9a7d16cae1dc" }
+once_cell = "1.15.0"
+spin = "0.9.4"
+
+[dev-dependencies]
+criterion = "0.3"
+num-bigint = "0.4"
+proptest = "1.0"
+rand-utils = { version = "0.4", path = "../utils/rand", package = "winter-rand-utils" }
+
+# Allow math in docs
+[package.metadata.docs.rs]
+rustdoc-args = ["--html-in-header", ".cargo/katex-header.html"]

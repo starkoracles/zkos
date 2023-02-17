@@ -1,6 +1,3 @@
-[submodule "winterfell"]
-	path = winterfell
-	url = git@github.com:starkoracles/winterfell.git
 [submodule "risc0"]
 	path = risc0
 	url = git@github.com:starkoracles/risc0.git
